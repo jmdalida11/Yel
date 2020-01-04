@@ -13,10 +13,11 @@ struct Board
 	Sqr position[NUM_OF_SQR];
 	std::vector<Sqr> pieces[NUM_OF_PIECE];
 	uint8_t side {defs::BOTH};
-	uint8_t fiftyMove {0};
 	Sqr enPassant {0};
 	uint8_t castle {0};
+	int fiftyMove {0};
 	int ply {0};
+	int hply {0};
 	std::vector<Move> moves {};
 };
 
@@ -25,7 +26,6 @@ class Game
 public:
 	Game() = default;
 	void init();
-	void initPieces();
 	void printBoard();
 	void generateMove();
 	void genPawnMove(Sqr s);

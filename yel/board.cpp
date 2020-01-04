@@ -22,48 +22,6 @@ void Game::init()
 	}
 }
 
-void Game::initPieces()
-{
-	for(Sqr i=a2; i<=h2; ++i)
-	{
-		board.pieces[wP].push_back(i);
-	}
-
-	for(Sqr i=a7; i<=h7; ++i)
-	{
-		board.pieces[bP].push_back(i);
-	}
-
-	board.pieces[wN].push_back(b1);
-	board.pieces[wN].push_back(g1);
-	board.pieces[wB].push_back(c1);
-	board.pieces[wB].push_back(f1);
-	board.pieces[wR].push_back(a1);
-	board.pieces[wR].push_back(h1);
-	board.pieces[wQ].push_back(d1);
-	board.pieces[wK].push_back(e1);
-
-	board.pieces[bN].push_back(b8);
-	board.pieces[bN].push_back(g8);
-	board.pieces[bB].push_back(c8);
-	board.pieces[bB].push_back(f8);
-	board.pieces[bR].push_back(a8);
-	board.pieces[bR].push_back(h8);
-	board.pieces[bQ].push_back(d8);
-	board.pieces[bK].push_back(e8);
-
-	for(Sqr i=wP; i<=bK; ++i)
-	{
-		for(auto itr=board.pieces[i].begin(); itr!=board.pieces[i].end(); ++itr)
-		{
-			board.position[*itr] = i;
-		}
-	}
-
-	board.castle = 15;
-	board.side = WHITE;
-}
-
 void Game::printBoard()
 {
 	for(Sqr rank=RANK_8; rank>=RANK_1; --rank)
