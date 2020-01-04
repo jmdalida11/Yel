@@ -21,6 +21,11 @@
 #define PROMOTE(x) ((x >> 21) & 0xF)
 #define ENPASS(x) ((x >> 29) & 0x7F)
 #define ENPASSCAP(x) ((x >> 36) & 0x7F)
+#define CASTBITS(x) ((x >> 16) & 0xF)
+#define WKSC(x) (x & 8)
+#define WQSC(x) (x & 4)
+#define BKSC(x) (x & 2)
+#define BQSC(x) (x & 1)
 
 using Sqr = int32_t;
 using Piece = int8_t;
@@ -116,6 +121,18 @@ const static bool isPawn[]
 	true, false, false, false, false, false, false
 };
 
+const static bool isRook[]
+{
+	false, false, false, false, true, false, false,
+	false, false, false, true, false, false, false
+};
+
+const static bool isKing[]
+{
+	false, false, false, false, false, false, true,
+	false, false, false, false, false, true, false
+};
+
 const static bool sliding[]
 {
 	false, false, false, true, true, true, false,
@@ -167,6 +184,11 @@ inline void setEnPassCapBits(Move& move, Sqr s)
 {
 	uint64_t sqr = (s & 0x7F);
 	move |= sqr << 36;
+}
+
+inline void addCastlingBits(Move& move, Sqr s)
+{
+	move |= s << 16;
 }
 
 inline std::string getPieceChar(const Piece& piece)
@@ -249,4 +271,4 @@ const static Sqr mailbox64[64]
 	91, 92, 93, 94, 95, 96, 97, 98
 };
 
-} // namespace definitions
+} // namespace defs

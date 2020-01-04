@@ -29,6 +29,7 @@ public:
 	void printBoard();
 	void generateMove();
 	void genPawnMove(Sqr s);
+	void genCastlingMove(Piece pieceIndex);
 	bool attack(Sqr s, int side);
 	void genPieceMove(Sqr from, Sqr to, Piece piece, bool isCapture);
 	bool makeMove(Move move);

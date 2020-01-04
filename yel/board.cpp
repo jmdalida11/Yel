@@ -140,6 +140,7 @@ void Game::generateMove()
 	for (Piece pieceIndex=start; pieceIndex<=end; ++pieceIndex)
 	{
 		std::vector<Sqr> pieceSqr = board.pieces[pieceIndex];
+		genCastlingMove(pieceIndex);
 
 		for (const auto& sqr : pieceSqr)
 		{
@@ -178,6 +179,57 @@ void Game::generateMove()
 							break;
 					}	
 				}
+			}
+		}
+	}
+}
+
+void Game::genCastlingMove(Piece pieceIndex)
+{
+	if (isKing[pieceIndex])
+	{
+		if (WKSC(board.castle) && board.side == WHITE)
+		{
+			if (board.position[f1] == EMPTY && board.position[g1] == EMPTY)
+			{
+				Move move = 0;
+				moveFromTo(move, e1, g1);
+				addPieceBits(move, wK);
+				addCastlingBits(move, 8);
+				board.moves.push_back(move);	
+			}
+		}
+		if (WQSC(board.castle) && board.side == WHITE)
+		{
+			if (board.position[d1] == EMPTY && board.position[c1] == EMPTY)
+			{
+				Move move = 0;
+				moveFromTo(move, e1, c1);
+				addPieceBits(move, wK);
+				addCastlingBits(move, 4);
+				board.moves.push_back(move);	
+			}
+		}
+		if (BQSC(board.castle) && board.side == BLACK)
+		{
+			if (board.position[f8] == EMPTY && board.position[g8] == EMPTY)
+			{
+				Move move = 0;
+				moveFromTo(move, e8, g8);
+				addPieceBits(move, bK);
+				addCastlingBits(move, 2);
+				board.moves.push_back(move);	
+			}
+		}
+		if (BQSC(board.castle) && board.side == BLACK)
+		{
+			if (board.position[d8] == EMPTY && board.position[c8] == EMPTY)
+			{
+				Move move = 0;
+				moveFromTo(move, e8, c8);
+				addPieceBits(move, bK);
+				addCastlingBits(move, 1);
+				board.moves.push_back(move);	
 			}
 		}
 	}
@@ -356,16 +408,134 @@ bool Game::makeMove(Move move)
 			}
 		}
 	}
+
+	if (CASTBITS(move))
+	{
+		if (board.side == WHITE)
+		{
+			uint8_t dir = CASTBITS(move);
+
+			if (WKSC(dir))
+			{
+				board.position[to] = wK;
+				board.position[from] = EMPTY;
+				board.position[f1] = wR;
+				board.position[h1] = EMPTY;
+
+				board.pieces[wK][0] = to;
+				for (auto& pieceMovingSqr : board.pieces[wR])
+				{
+					if (pieceMovingSqr == h1)
+					{
+						pieceMovingSqr = f1;
+						break;
+					}
+				}
+			}
+			else if (WQSC(dir))
+			{
+				board.position[to] = wK;
+				board.position[from] = EMPTY;
+				board.position[d1] = wR;
+				board.position[a1] = EMPTY;
+
+				board.pieces[wK][0] = to;
+
+				for (auto& pieceMovingSqr : board.pieces[wR])
+				{
+					if (pieceMovingSqr == a1)
+					{
+						pieceMovingSqr = d1;
+						break;
+					}
+				}
+			}
+
+			board.castle &= 3;
+		}
+		else if (board.side == BLACK)
+		{
+			uint8_t dir = CASTBITS(move);
+
+			if (BKSC(dir))
+			{
+				board.position[to] = bK;
+				board.position[from] = EMPTY;
+				board.position[f8] = bR;
+				board.position[h8] = EMPTY;
+
+				board.pieces[bK][0] = to;
+
+				for (auto& pieceMovingSqr : board.pieces[bR])
+				{
+					if (pieceMovingSqr == h8)
+					{
+						pieceMovingSqr = f8;
+						break;
+					}
+				}
+			}
+			else if (BQSC(dir))
+			{
+				board.position[to] = bK;
+				board.position[from] = EMPTY;
+				board.position[d8] = bR;
+				board.position[a8] = EMPTY;
+
+				board.pieces[bK][0] = to;
+
+				for (auto& pieceMovingSqr : board.pieces[bR])
+				{
+					if (pieceMovingSqr == a8)
+					{
+						pieceMovingSqr = d8;
+						break;
+					}
+				}
+			}
+
+			board.castle &= 12;
+		}
+	}
 	else 
 	{
+		if (board.castle != 0 && isKing[PIECE(move)])
+		{
+			if (board.side == WHITE)
+			{
+				board.castle &= 3;
+			}
+			else if (board.side == BLACK)
+			{
+				board.castle &= 12;
+			}
+		}
+		else if (board.castle != 0 && isRook[PIECE(move)])
+		{
+			if (board.side == WHITE)
+			{
+				if (from == h1)
+					board.castle &= 7;
+				if (from == a1)
+					board.castle &= 11;
+			}
+			else if (board.side == BLACK)
+			{
+				if (from == h8)
+					board.castle &= 13;
+				if (from == a8)
+					board.castle &= 14;
+			}
+		}
+
 		board.position[to] = board.position[from];
 		board.position[from] = EMPTY;
 
-		for (auto& p : board.pieces[PIECE(move)])
+		for (auto& pieceMovingSqr : board.pieces[PIECE(move)])
 		{
-			if (p == from)
+			if (pieceMovingSqr == from)
 			{
-				p = to;
+				pieceMovingSqr = to;
 				break;
 			}
 		}
