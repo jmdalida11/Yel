@@ -15,11 +15,11 @@
 
 #define FROM(x) (x & 0x7F)
 #define TO(x) ((x >> 7) & 0x7F)
-#define PIECE(x) ((x >> 25) & 0xF)
 #define ISCAP(x) ((x >> 14) & 1)
+#define PIECE(x) ((x >> 25) & 0xF)
 #define ISPROMOTION(x) ((x >> 20) & 1)
 #define ENPASS(x) ((x >> 29) & 0x7F)
-#define ENPASSCAP(x) ((x >> 37) & 0x7F)
+#define ENPASSCAP(x) ((x >> 36) & 0x7F)
 
 using Sqr = int32_t;
 using Piece = int8_t;
@@ -141,9 +141,9 @@ inline void promoteBits(Move& move, Piece p)
 	move |= (p & 0xF) << 21;
 }
 
-inline void addPieceBits(Move& move, Piece piece)
+inline void addPieceBits(Move& move, Piece p)
 {
-	move |= (piece & 0xF) << 25;
+	move |= (p & 0xF) << 25;
 }
 
 inline void addCaptureBit(Move& move)
@@ -158,12 +158,13 @@ inline void addPromotionBit(Move& move)
 
 inline void setEnpassBits(Move& move, Sqr s)
 {
-	move |= s << 29;
+	uint64_t sqr = (s & 0x7F);
+	move |= (sqr << 29);
 }
 
 inline void setEnPassCapBits(Move& move, Sqr s)
 {
-	uint64_t sqr = s;
+	uint64_t sqr = (s & 0x7F);
 	move |= sqr << 36;
 }
 
@@ -183,9 +184,9 @@ inline std::string getPieceChar(const Piece& piece)
 		case bR: return "bR";
 		case bQ: return "bQ";
 		case bK: return "bK";
+		case EMPTY: return "--";
 	}
-
-	return "--";
+	return "x";
 }
 
 inline Sqr fRSqr(Sqr file, Sqr rank)

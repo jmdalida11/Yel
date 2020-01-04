@@ -204,7 +204,6 @@ void Game::genPawnMove(Sqr sqr)
 		pieces = {bP, bN, bQ};
 	}
 
-
 	if (sqr >= seventhRank[0] && sqr <= seventhRank[1])
 	{
 		if (board.position[sqr + moves[0]] == EMPTY)
@@ -219,7 +218,8 @@ void Game::genPawnMove(Sqr sqr)
 			}
 		}
 
-		if (board.position[sqr + moves[2]] != EMPTY && pieceColor[board.position[sqr + moves[2]]] == (board.side ^ 1))
+		if (board.position[sqr + moves[2]] != EMPTY && board.position[sqr + moves[2]] != OFF_BOARD &&
+			pieceColor[board.position[sqr + moves[2]]] == (board.side ^ 1))
 		{
 			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
 			{
@@ -232,7 +232,8 @@ void Game::genPawnMove(Sqr sqr)
 			}
 		}
 
-		if (board.position[sqr + moves[3]] != EMPTY && pieceColor[board.position[sqr + moves[3]]] == (board.side ^ 1))
+		if (board.position[sqr + moves[3]] != EMPTY && board.position[sqr + moves[3]] != OFF_BOARD &&
+			pieceColor[board.position[sqr + moves[3]]] == (board.side ^ 1))
 		{
 			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
 			{
@@ -265,7 +266,8 @@ void Game::genPawnMove(Sqr sqr)
 			board.moves.push_back(move);
 		}
 
-		if (board.position[sqr + moves[2]] != EMPTY && pieceColor[board.position[sqr + moves[2]]] == (board.side ^ 1))
+		if (board.position[sqr + moves[2]] != EMPTY && board.position[sqr + moves[2]] != OFF_BOARD &&
+			pieceColor[board.position[sqr + moves[2]]] == (board.side ^ 1))
 		{
 			Move move = 0;
 			moveFromTo(move, sqr, (sqr + moves[2]));
@@ -274,7 +276,8 @@ void Game::genPawnMove(Sqr sqr)
 			board.moves.push_back(move);
 		}
 
-		if (board.position[sqr + moves[3]] != EMPTY && pieceColor[board.position[sqr + moves[3]]] == (board.side ^ 1))
+		if (board.position[sqr + moves[3]] != EMPTY && board.position[sqr + moves[3]] != OFF_BOARD &&
+			pieceColor[board.position[sqr + moves[3]]] == (board.side ^ 1))
 		{
 			Move move = 0;
 			moveFromTo(move, sqr, (sqr + moves[3]));
@@ -320,8 +323,6 @@ bool Game::makeMove(Move move)
 
 		if (ENPASSCAP(move))
 		{
-			int x = ENPASSCAP(move);
-			//std::cout << x << std::endl;
 			toRemoveSqrIndex = ENPASSCAP(move);
 		}
 
@@ -330,10 +331,15 @@ bool Game::makeMove(Move move)
 		{
 			if (*itr == toRemoveSqrIndex)
 			{
-				pieceToRemove.erase(pieceToRemove.begin(), itr);
+				pieceToRemove.erase(itr);
 				break;
 			}
 		}
+	}
+
+	if (ENPASSCAP(move))
+	{
+		board.position[ENPASSCAP(move)] = EMPTY;
 	}
 
 	board.position[to] = board.position[from];
@@ -349,7 +355,7 @@ bool Game::makeMove(Move move)
 	}
 
 	board.enPassant = ENPASS(move);
-	std::cout << board.enPassant;
+	std::cout << board.enPassant << std::endl;
 	board.side ^= 1;
 	board.moves.clear();
 
