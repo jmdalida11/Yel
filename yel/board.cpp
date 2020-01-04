@@ -60,6 +60,7 @@ void Game::initPieces()
 		}
 	}
 
+	board.castle = 15;
 	board.side = WHITE;
 }
 
@@ -85,70 +86,6 @@ void Game::printBoard()
 	print("");
 
 	//printMoves(board.moves);
-}
-
-void Game::generateMove()
-{
-	Piece start;
-	Piece end;
-
-	if (board.side == WHITE)
-	{
-		start = wP;
-		end = wK;
-	}
-	else if (board.side == BLACK)
-	{
-		start = bP;
-		end = bK;
-	}
-
-	for (auto pieceIndex=start; pieceIndex<=end; ++pieceIndex)
-	{
-		std::vector<Sqr> pieceSqr = board.pieces[pieceIndex];
-
-		for (const auto& sqr : pieceSqr)
-		{
-			if (isPawn[pieceIndex])
-			{
-				genPawnMove(sqr);
-			}
-			else
-			{
-				const std::vector<Sqr>& pMoves = pieceMoves(pieceIndex);
-
-				for (const auto& pM : pMoves)
-				{
-					Sqr s = sqr;
-					
-					while (true)
-					{
-						s = s + pM;
-
-						if (mailbox[s] == OFF_BOARD)
-							break;
-
-						auto bSqr = board.position[s];
-						if (bSqr != EMPTY)
-						{
-							if (pieceColor[bSqr] != board.side)
-							{
-								genPieceMove(sqr, s, true);
-							}
-							break;
-						}
-
-						genPieceMove(sqr, s, false);
-
-						if (!sliding[pieceIndex])
-							break;
-					}
-					
-				}
-
-			}
-		}
-	}
 }
 
 bool Game::attack(Sqr s, int side)
@@ -183,58 +120,191 @@ bool Game::attack(Sqr s, int side)
 	return false;
 }
 
-void Game::genPawnMove(Sqr sqr)
+
+void Game::generateMove()
 {
+	Piece start;
+	Piece end;
+
 	if (board.side == WHITE)
 	{
-		if (sqr >= a2 && sqr <= h2 && board.position[sqr + 10] == EMPTY && board.position[sqr + 20] == EMPTY)
-		{
-			board.moves.push_back(moveFromTo(sqr, (sqr + 20)));
-		}
-
-		if (board.position[sqr + 10] == EMPTY && sqr >= a7 && sqr <= h7)
-		{
-			for (Piece piece=wN; piece<=wQ; ++piece)
-			{
-				Move move = promote(piece);
-				moveFromTo(move, sqr, (sqr + 10));
-				board.moves.push_back(move);
-			}
-		}
-		else if (board.position[sqr + 10] == EMPTY)
-		{
-			board.moves.push_back(moveFromTo(sqr, (sqr + 10)));
-		}
+		start = wP;
+		end = wK;
 	}
 	else if (board.side == BLACK)
 	{
-		if (sqr >= a7 && sqr <= h7 && board.position[sqr + -10] == EMPTY && board.position[sqr + -20] == EMPTY)
-		{
-			board.moves.push_back(moveFromTo(sqr, (sqr + -20)));
-		}
+		start = bP;
+		end = bK;
+	}
 
-		if (board.position[sqr + -10] == EMPTY && sqr >= a2 && sqr <= h2)
+	for (Piece pieceIndex=start; pieceIndex<=end; ++pieceIndex)
+	{
+		std::vector<Sqr> pieceSqr = board.pieces[pieceIndex];
+
+		for (const auto& sqr : pieceSqr)
 		{
-			for (Piece piece=bN; piece<=bQ; ++piece)
+			if (isPawn[pieceIndex])
 			{
-				Move move = promote(piece);
-				moveFromTo(move, sqr, (sqr + -10));
-				board.moves.push_back(move);
+				genPawnMove(sqr);
 			}
-		}
-		else if (board.position[sqr + -10] == EMPTY)
-		{
-			board.moves.push_back(moveFromTo(sqr, (sqr + -10)));
+			else
+			{
+				const std::vector<Sqr>& pMoves = pieceMoves(pieceIndex);
+
+				for (const auto& pM : pMoves)
+				{
+					Sqr s = sqr;
+					
+					while (true)
+					{
+						s = s + pM;
+
+						if (mailbox[s] == OFF_BOARD)
+							break;
+
+						auto bSqr = board.position[s];
+						if (bSqr != EMPTY)
+						{
+							if (pieceColor[bSqr] != board.side)
+							{
+								genPieceMove(sqr, s, pieceIndex, true);
+							}
+							break;
+						}
+
+						genPieceMove(sqr, s, pieceIndex, false);
+
+						if (!sliding[pieceIndex])
+							break;
+					}	
+				}
+			}
 		}
 	}
 }
 
-void Game::genPieceMove(Sqr from, Sqr to, bool isCapture)
+void Game::genPawnMove(Sqr sqr)
+{
+	std::vector<Sqr> secondRank, seventhRank;
+	std::vector<int> moves;
+	std::vector<int> pieces;
+
+	if (board.side == WHITE)
+	{
+		secondRank = {a2, h2};
+		seventhRank = {a7, h7};
+		moves = {10, 20, 9, 11};
+		pieces = {wP, wN, wQ};
+	}
+	else if (board.side == BLACK)
+	{
+		secondRank = {a7, h7};
+		seventhRank = {a2, h2};
+		moves = {-10, -20, -9, -11};
+		pieces = {bP, bN, bQ};
+	}
+
+
+	if (sqr >= seventhRank[0] && sqr <= seventhRank[1])
+	{
+		if (board.position[sqr + moves[0]] == EMPTY)
+		{
+			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
+			{
+				Move move = 0;
+				promoteBits(move, piece);
+				moveFromTo(move, sqr, (sqr + moves[0]));
+				addPieceBits(move, pieces[0]);
+				board.moves.push_back(move);
+			}
+		}
+
+		if (board.position[sqr + moves[2]] != EMPTY && pieceColor[board.position[sqr + moves[2]]] == (board.side ^ 1))
+		{
+			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
+			{
+				Move move = 0;
+				promoteBits(move, piece);
+				moveFromTo(move, sqr, (sqr + moves[2]));
+				addPieceBits(move, pieces[0]);
+				addCaptureBit(move);
+				board.moves.push_back(move);
+			}
+		}
+
+		if (board.position[sqr + moves[3]] != EMPTY && pieceColor[board.position[sqr + moves[3]]] == (board.side ^ 1))
+		{
+			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
+			{
+				Move move = 0;
+				promoteBits(move, piece);
+				moveFromTo(move, sqr, (sqr + moves[1]));
+				addPieceBits(move, pieces[0]);
+				addCaptureBit(move);
+				board.moves.push_back(move);
+			}
+		}
+	}
+	else 
+	{
+		if (sqr >= secondRank[0] && sqr <= secondRank[1])
+		{
+			if (board.position[sqr + moves[0]] == EMPTY && board.position[sqr + moves[1]] == EMPTY)
+			{
+				Move move = moveFromTo(sqr, (sqr + moves[1]));
+				addPieceBits(move, pieces[0]);
+				setEnpassBits(move, (sqr + moves[0]));
+				board.moves.push_back(move);
+			}
+		}
+
+		if (board.position[sqr + moves[0]] == EMPTY)
+		{
+			Move move = moveFromTo(sqr, (sqr + moves[0]));
+			addPieceBits(move, pieces[0]);
+			board.moves.push_back(move);
+		}
+
+		if (board.position[sqr + moves[2]] != EMPTY && pieceColor[board.position[sqr + moves[2]]] == (board.side ^ 1))
+		{
+			Move move = 0;
+			moveFromTo(move, sqr, (sqr + moves[2]));
+			addPieceBits(move, pieces[0]);
+			addCaptureBit(move);
+			board.moves.push_back(move);
+		}
+
+		if (board.position[sqr + moves[3]] != EMPTY && pieceColor[board.position[sqr + moves[3]]] == (board.side ^ 1))
+		{
+			Move move = 0;
+			moveFromTo(move, sqr, (sqr + moves[3]));
+			addPieceBits(move, pieces[0]);
+			addCaptureBit(move);
+			board.moves.push_back(move);
+		}
+
+		if (board.enPassant)
+		{
+			if (sqr + moves[3] == board.enPassant || sqr + moves[2] == board.enPassant)
+			{
+				Move move = 0;
+				moveFromTo(move, sqr, board.enPassant);
+				addPieceBits(move, pieces[0]);
+				addCaptureBit(move);
+				setEnPassCapBits(move, board.enPassant - moves[0]);
+				board.moves.push_back(move);
+			}
+		}
+	}
+}
+
+void Game::genPieceMove(Sqr from, Sqr to, Piece pieceIndex, bool isCapture)
 {
 	Move move = moveFromTo(from, to);
+	addPieceBits(move, pieceIndex);
 
 	if (isCapture)
-		bitCapture(move);
+		addCaptureBit(move);
 
 	board.moves.push_back(move);
 }
@@ -244,10 +314,44 @@ bool Game::makeMove(Move move)
 	Sqr from = FROM(move);
 	Sqr to = TO(move);
 
+	if (ISCAP(move))
+	{
+		Sqr toRemoveSqrIndex = to;
+
+		if (ENPASSCAP(move))
+		{
+			int x = ENPASSCAP(move);
+			//std::cout << x << std::endl;
+			toRemoveSqrIndex = ENPASSCAP(move);
+		}
+
+		auto& pieceToRemove = board.pieces[board.position[toRemoveSqrIndex]];
+		for (auto itr=pieceToRemove.begin(); itr!=pieceToRemove.end(); ++itr)
+		{
+			if (*itr == toRemoveSqrIndex)
+			{
+				pieceToRemove.erase(pieceToRemove.begin(), itr);
+				break;
+			}
+		}
+	}
+
 	board.position[to] = board.position[from];
 	board.position[from] = EMPTY;
 
+	for (auto& p : board.pieces[PIECE(move)])
+	{
+		if (p == from)
+		{
+			p = to;
+			break;
+		}
+	}
+
+	board.enPassant = ENPASS(move);
+	std::cout << board.enPassant;
 	board.side ^= 1;
+	board.moves.clear();
 
 	return true;
 }

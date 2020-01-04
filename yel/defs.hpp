@@ -15,10 +15,15 @@
 
 #define FROM(x) (x & 0x7F)
 #define TO(x) ((x >> 7) & 0x7F)
+#define PIECE(x) ((x >> 25) & 0xF)
+#define ISCAP(x) ((x >> 14) & 1)
+#define ISPROMOTION(x) ((x >> 20) & 1)
+#define ENPASS(x) ((x >> 29) & 0x7F)
+#define ENPASSCAP(x) ((x >> 37) & 0x7F)
 
 using Sqr = int32_t;
 using Piece = int8_t;
-using Move = uint32_t;
+using Move = uint64_t;
 
 namespace defs {
 
@@ -116,14 +121,6 @@ const static bool sliding[]
 	false, false, true, true, true, false, false
 };
 
-inline Move promote(Piece p)
-{
-	Move move = 0;
-	move |= 1 << 20;
-	move |= (p & 0xF) << 21;
-	return move;
-}
-
 inline Move moveFromTo(Sqr from, Sqr to)
 {
 	Move move = 0;
@@ -132,15 +129,42 @@ inline Move moveFromTo(Sqr from, Sqr to)
 	return move;
 }
 
-inline void bitCapture(Move& move)
-{
-	move |= 1 << 14;
-}
-
 inline void moveFromTo(Move& move, Sqr from, Sqr to)
 {
 	move |= from;
 	move |= (to << 7);
+}
+
+inline void promoteBits(Move& move, Piece p)
+{
+	move |= 1 << 20;
+	move |= (p & 0xF) << 21;
+}
+
+inline void addPieceBits(Move& move, Piece piece)
+{
+	move |= (piece & 0xF) << 25;
+}
+
+inline void addCaptureBit(Move& move)
+{
+	move |= 1 << 14;
+}
+
+inline void addPromotionBit(Move& move)
+{
+	move |= 1 << 20;
+}
+
+inline void setEnpassBits(Move& move, Sqr s)
+{
+	move |= s << 29;
+}
+
+inline void setEnPassCapBits(Move& move, Sqr s)
+{
+	uint64_t sqr = s;
+	move |= sqr << 36;
 }
 
 inline std::string getPieceChar(const Piece& piece)

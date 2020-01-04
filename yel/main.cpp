@@ -12,7 +12,7 @@ Move parseMove(std::string move, board::Game game)
 
 	for (const auto& move : game.getBoard().moves)
 	{
-		if (from == FROM(move) && to == TO(move))
+		if (from == FROM(move) && to == TO(move) && PIECE(move) == game.getBoard().position[from])
 		{
 			return move;
 		}
