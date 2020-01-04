@@ -211,7 +211,7 @@ void Game::genPawnMove(Sqr sqr)
 			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
 			{
 				Move move = 0;
-				promoteBits(move, piece);
+				addPromoteBits(move, piece);
 				moveFromTo(move, sqr, (sqr + moves[0]));
 				addPieceBits(move, pieces[0]);
 				board.moves.push_back(move);
@@ -224,7 +224,7 @@ void Game::genPawnMove(Sqr sqr)
 			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
 			{
 				Move move = 0;
-				promoteBits(move, piece);
+				addPromoteBits(move, piece);
 				moveFromTo(move, sqr, (sqr + moves[2]));
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
@@ -238,8 +238,8 @@ void Game::genPawnMove(Sqr sqr)
 			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
 			{
 				Move move = 0;
-				promoteBits(move, piece);
-				moveFromTo(move, sqr, (sqr + moves[1]));
+				addPromoteBits(move, piece);
+				moveFromTo(move, sqr, (sqr + moves[3]));
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
 				board.moves.push_back(move);
@@ -331,31 +331,47 @@ bool Game::makeMove(Move move)
 		{
 			if (*itr == toRemoveSqrIndex)
 			{
+				if (ENPASSCAP(move))
+				{
+					board.position[ENPASSCAP(move)] = EMPTY;
+				}
 				pieceToRemove.erase(itr);
 				break;
 			}
 		}
 	}
 
-	if (ENPASSCAP(move))
+	if (PROMOTE(move))
 	{
-		board.position[ENPASSCAP(move)] = EMPTY;
-	}
+		board.position[to] = PROMOTE(move);
+		board.position[from] = EMPTY;
 
-	board.position[to] = board.position[from];
-	board.position[from] = EMPTY;
+		board.pieces[PROMOTE(move)].push_back(to);
 
-	for (auto& p : board.pieces[PIECE(move)])
-	{
-		if (p == from)
+		for (auto itr=board.pieces[PIECE(move)].begin(); itr!=board.pieces[PIECE(move)].end(); ++itr)
 		{
-			p = to;
-			break;
+			if (*itr == from)
+			{
+				board.pieces[PIECE(move)].erase(itr);
+			}
+		}
+	}
+	else 
+	{
+		board.position[to] = board.position[from];
+		board.position[from] = EMPTY;
+
+		for (auto& p : board.pieces[PIECE(move)])
+		{
+			if (p == from)
+			{
+				p = to;
+				break;
+			}
 		}
 	}
 
 	board.enPassant = ENPASS(move);
-	std::cout << board.enPassant << std::endl;
 	board.side ^= 1;
 	board.moves.clear();
 

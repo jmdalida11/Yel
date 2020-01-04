@@ -18,6 +18,7 @@
 #define ISCAP(x) ((x >> 14) & 1)
 #define PIECE(x) ((x >> 25) & 0xF)
 #define ISPROMOTION(x) ((x >> 20) & 1)
+#define PROMOTE(x) ((x >> 21) & 0xF)
 #define ENPASS(x) ((x >> 29) & 0x7F)
 #define ENPASSCAP(x) ((x >> 36) & 0x7F)
 
@@ -135,7 +136,7 @@ inline void moveFromTo(Move& move, Sqr from, Sqr to)
 	move |= (to << 7);
 }
 
-inline void promoteBits(Move& move, Piece p)
+inline void addPromoteBits(Move& move, Piece p)
 {
 	move |= 1 << 20;
 	move |= (p & 0xF) << 21;
@@ -151,7 +152,7 @@ inline void addCaptureBit(Move& move)
 	move |= 1 << 14;
 }
 
-inline void addPromotionBit(Move& move)
+inline void addIsPromotionBit(Move& move)
 {
 	move |= 1 << 20;
 }
@@ -192,6 +193,18 @@ inline std::string getPieceChar(const Piece& piece)
 inline Sqr fRSqr(Sqr file, Sqr rank)
 {
 	return (21 + file) + (10 * rank);
+}
+
+inline Piece promoteChar(char piece, int side)
+{
+	switch(piece)
+	{
+		case 'n': return side == WHITE ? wN : bN;
+		case 'b': return side == WHITE ? wB : bB;
+		case 'r': return side == WHITE ? wR : bR;
+		case 'q': return side == WHITE ? wQ : bQ;
+	}
+	return EMPTY;
 }
 
 inline void printMoves(const std::vector<Move>& moves)
