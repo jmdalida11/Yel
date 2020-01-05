@@ -2,6 +2,7 @@
 
 #include "board.hpp"
 #include <map>
+#include <sstream>
 
 using namespace defs;
 
@@ -89,6 +90,12 @@ void loadFen(std::string fen, board::Game& game)
 	i++;
 	while(fen[++i] != ' ')
 	{
+		if (fen[i] == '-')
+		{
+			i++;
+			break;
+		}
+
 		if (fen[i] == 'K')
 			game.getBoard().castle |= 8;
 		else if (fen[i] == 'Q')
@@ -107,10 +114,29 @@ void loadFen(std::string fen, board::Game& game)
 		game.getBoard().enPassant = fRSqr(file, rank);
 	}
 
+	i += 2;
+
+	std::string fiftyMove = "";
+	while(fen[i] != ' ')
+	{
+		fiftyMove += fen[i];
+		i++;
+	}
+	std::stringstream ss(fiftyMove);
+
+	ss >> game.getBoard().fiftyMove;
+
 	i++;
-	game.getBoard().fiftyMove = fen[++i] - 48;
-	i++;
-	game.getBoard().hply = fen[++i] - 48;
+
+	std::string hply = "";
+	while(i<fen.length())
+	{
+		hply += fen[i];
+		i++;
+	}
+
+	std::stringstream ss1(hply);
+	ss1 >> game.getBoard().hply;
 }
 
 } // namespace utils
