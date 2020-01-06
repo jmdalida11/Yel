@@ -16,12 +16,14 @@
 #define FROM(x) (x & 0x7F)
 #define TO(x) ((x >> 7) & 0x7F)
 #define ISCAP(x) ((x >> 14) & 1)
+#define CASTBITS(x) ((x >> 16) & 0xF)
 #define PIECE(x) ((x >> 25) & 0xF)
 #define ISPROMOTION(x) ((x >> 20) & 1)
 #define PROMOTE(x) ((x >> 21) & 0xF)
 #define ENPASS(x) ((x >> 29) & 0x7F)
 #define ENPASSCAP(x) ((x >> 36) & 0x7F)
-#define CASTBITS(x) ((x >> 16) & 0xF)
+#define PIECECAP(x) ((x >> 43) & 0xF)
+
 #define WKSC(x) (x & 8)
 #define WQSC(x) (x & 4)
 #define BKSC(x) (x & 2)
@@ -73,7 +75,7 @@ enum : Sqr
 	FILE_E, FILE_F, FILE_G, FILE_H, NO_FILE = OFF_BOARD
 };
 
-enum : Sqr 
+enum : Sqr
 {
 	EMPTY = 0,
 	wP, wN, wB, wR, wQ, wK,
@@ -191,6 +193,12 @@ inline void addCastlingBits(Move& move, Sqr s)
 	move |= s << 16;
 }
 
+inline void setCapturePieceBits(Move& move, Piece p)
+{
+	uint64_t piece = (p & 0xF);
+	move |= piece << 43;
+}
+
 inline std::string getPieceChar(const Piece& piece)
 {
 	switch(piece)
@@ -243,7 +251,7 @@ inline void printMoves(const std::vector<Move>& moves)
 	}
 }
 
-const static Sqr mailbox[120] 
+const static Sqr mailbox[120]
 {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -259,7 +267,7 @@ const static Sqr mailbox[120]
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 };
 
-const static Sqr mailbox64[64] 
+const static Sqr mailbox64[64]
 {
 	21, 22, 23, 24, 25, 26, 27, 28,
 	31, 32, 33, 34, 35, 36, 37, 38,

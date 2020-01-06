@@ -18,6 +18,7 @@ struct Board
 	int fiftyMove {0};
 	int ply {0};
 	int hply {0};
+	std::vector<Move> moveHistory {};
 	std::vector<Move> moves {};
 };
 
@@ -30,9 +31,10 @@ public:
 	void generateMove();
 	void genPawnMove(Sqr s);
 	void genCastlingMove(Piece pieceIndex);
-	bool attack(Sqr s, int side);
+	bool attacked(Sqr sqrAttacked, int side);
 	void genPieceMove(Sqr from, Sqr to, Piece piece, bool isCapture);
 	bool makeMove(Move move);
+	void takeback();
 	Board& getBoard() { return board; }
 private:
 	Board board;

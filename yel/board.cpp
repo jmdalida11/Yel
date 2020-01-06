@@ -46,7 +46,7 @@ void Game::printBoard()
 	//printMoves(board.moves);
 }
 
-bool Game::attack(Sqr s, int side)
+bool Game::attacked(Sqr sqrAttacked, int side)
 {
 	Piece start;
 	Piece end;
@@ -68,9 +68,57 @@ bool Game::attack(Sqr s, int side)
 
 		for (const auto& sqr : pieceSqr)
 		{
-			if (sqr)
+			if (isPawn[pieceIndex])
 			{
-				return true;
+				if (side == WHITE)
+				{
+					if (board.position[sqr + 9] == sqrAttacked || board.position[sqr + 11] == sqrAttacked)
+					{
+						return true;
+					}
+				}
+				else if (side == BLACK)
+				{
+					if (board.position[sqr + -9] == sqrAttacked || board.position[sqr + -11] == sqrAttacked)
+					{
+						return true;
+					}
+				}
+			}
+			else
+			{
+				const std::vector<Sqr>& pMoves = pieceMoves(pieceIndex);
+
+				for (const auto& pM : pMoves)
+				{
+					Sqr s = sqr;
+
+					while (true)
+					{
+						s = s + pM;
+
+						if (mailbox[s] == OFF_BOARD)
+							break;
+
+						auto bSqr = board.position[s];
+						if (bSqr != EMPTY)
+						{
+							if (sqrAttacked == s)
+							{
+								return true;
+							}
+							break;
+						}
+
+						if (sqrAttacked == s)
+						{
+							return true;
+						}
+
+						if (!sliding[pieceIndex])
+							break;
+					}
+				}
 			}
 		}
 	}
@@ -113,7 +161,7 @@ void Game::generateMove()
 				for (const auto& pM : pMoves)
 				{
 					Sqr s = sqr;
-					
+
 					while (true)
 					{
 						s = s + pM;
@@ -135,7 +183,7 @@ void Game::generateMove()
 
 						if (!sliding[pieceIndex])
 							break;
-					}	
+					}
 				}
 			}
 		}
@@ -154,7 +202,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 				moveFromTo(move, e1, g1);
 				addPieceBits(move, wK);
 				addCastlingBits(move, 8);
-				board.moves.push_back(move);	
+				board.moves.push_back(move);
 			}
 		}
 		if (WQSC(board.castle) && board.side == WHITE)
@@ -165,7 +213,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 				moveFromTo(move, e1, c1);
 				addPieceBits(move, wK);
 				addCastlingBits(move, 4);
-				board.moves.push_back(move);	
+				board.moves.push_back(move);
 			}
 		}
 		if (BQSC(board.castle) && board.side == BLACK)
@@ -176,7 +224,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 				moveFromTo(move, e8, g8);
 				addPieceBits(move, bK);
 				addCastlingBits(move, 2);
-				board.moves.push_back(move);	
+				board.moves.push_back(move);
 			}
 		}
 		if (BQSC(board.castle) && board.side == BLACK)
@@ -187,7 +235,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 				moveFromTo(move, e8, c8);
 				addPieceBits(move, bK);
 				addCastlingBits(move, 1);
-				board.moves.push_back(move);	
+				board.moves.push_back(move);
 			}
 		}
 	}
@@ -238,6 +286,7 @@ void Game::genPawnMove(Sqr sqr)
 				moveFromTo(move, sqr, (sqr + moves[2]));
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
+				setCapturePieceBits(move, board.position[(sqr + moves[2])]);
 				board.moves.push_back(move);
 			}
 		}
@@ -252,11 +301,12 @@ void Game::genPawnMove(Sqr sqr)
 				moveFromTo(move, sqr, (sqr + moves[3]));
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
+				setCapturePieceBits(move, board.position[(sqr + moves[3])]);
 				board.moves.push_back(move);
 			}
 		}
 	}
-	else 
+	else
 	{
 		if (sqr >= secondRank[0] && sqr <= secondRank[1])
 		{
@@ -283,6 +333,7 @@ void Game::genPawnMove(Sqr sqr)
 			moveFromTo(move, sqr, (sqr + moves[2]));
 			addPieceBits(move, pieces[0]);
 			addCaptureBit(move);
+			setCapturePieceBits(move, board.position[(sqr + moves[2])]);
 			board.moves.push_back(move);
 		}
 
@@ -293,6 +344,7 @@ void Game::genPawnMove(Sqr sqr)
 			moveFromTo(move, sqr, (sqr + moves[3]));
 			addPieceBits(move, pieces[0]);
 			addCaptureBit(move);
+			setCapturePieceBits(move, board.position[(sqr + moves[3])]);
 			board.moves.push_back(move);
 		}
 
@@ -305,6 +357,7 @@ void Game::genPawnMove(Sqr sqr)
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
 				setEnPassCapBits(move, board.enPassant - moves[0]);
+				setCapturePieceBits(move, board.enPassant - moves[0]);
 				board.moves.push_back(move);
 			}
 		}
@@ -317,7 +370,10 @@ void Game::genPieceMove(Sqr from, Sqr to, Piece pieceIndex, bool isCapture)
 	addPieceBits(move, pieceIndex);
 
 	if (isCapture)
+	{
 		addCaptureBit(move);
+		setCapturePieceBits(move, board.position[to]);
+	}
 
 	board.moves.push_back(move);
 }
@@ -455,7 +511,7 @@ bool Game::makeMove(Move move)
 			board.castle &= 12;
 		}
 	}
-	else 
+	else
 	{
 		if (board.castle != 0 && isKing[PIECE(move)])
 		{
@@ -499,11 +555,27 @@ bool Game::makeMove(Move move)
 		}
 	}
 
+	Sqr kingPos = board.side == WHITE ? board.pieces[wK][0] : board.pieces[bK][0];
+
 	board.enPassant = ENPASS(move);
 	board.side ^= 1;
+
+	board.moveHistory.push_back(move);
+
+	if (attacked(kingPos, board.side ^ 1))
+	{
+		// TODO: Ilegal move. take back move
+		return false;
+	}
+
 	board.moves.clear();
 
 	return true;
+}
+
+void Game::takeback()
+{
+
 }
 
 } // namespace board
