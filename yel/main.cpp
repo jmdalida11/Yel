@@ -6,20 +6,16 @@ int main()
 	print("");
 
 	const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-	//const std::string Startfen = "rn1qkbnr/pbpp3p/1p2p3/1P3ppP/3P4/2P3P1/P3PP2/RNBQKBNR b KQkq - 0 1";
 
 	board::Game game;
 	game.init();
 	utils::loadFen(Startfen, game);
-	bool noTakeback = true;
+	game.generateMove();
 
 	while (true)
 	{
 		print("");
 		game.printBoard();
-
-		if (noTakeback)
-			game.generateMove();
 
 		std::string turn = game.getBoard().side == defs::WHITE ? "White" : "Black";
 		std::cout << turn << " Enter Move (Ex. e2e4): " << std::endl;
@@ -31,13 +27,19 @@ int main()
 		if (m == "takeback")
 		{
 			game.takeback();
+			game.getBoard().moves.clear();
+			game.generateMove();
 			continue;
 		}
 
 		const auto move = utils::parseMove(m, game);
 		if (move)
 		{
-			noTakeback = game.makeMove(move);
+			if(game.makeMove(move))
+			{
+				game.getBoard().moves.clear();
+				game.generateMove();
+			}
 		}
 	}
 }

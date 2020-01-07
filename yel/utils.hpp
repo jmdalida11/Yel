@@ -81,7 +81,7 @@ void loadFen(std::string fen, board::Game& game)
 			game.getBoard().pieces[pieceMap[fen[i]]].push_back(fRSqr(file, rank));
 			file++;
 		}
-		
+
 		++i;
 	}
 
@@ -112,6 +112,7 @@ void loadFen(std::string fen, board::Game& game)
 		int rank = fen[++i] - 49;
 
 		game.getBoard().enPassant = fRSqr(file, rank);
+		game.startEnpassant = fRSqr(file, rank);
 	}
 
 	i += 2;

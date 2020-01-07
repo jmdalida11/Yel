@@ -42,8 +42,6 @@ void Game::printBoard()
 		std::cout << "  " << x << " ";
 	}
 	print("");
-
-	//printMoves(board.moves);
 }
 
 bool Game::attacked(Sqr sqrAttacked, int side)
@@ -72,14 +70,14 @@ bool Game::attacked(Sqr sqrAttacked, int side)
 			{
 				if (side == WHITE)
 				{
-					if (board.position[sqr + 9] == sqrAttacked || board.position[sqr + 11] == sqrAttacked)
+					if (sqr + 9 == sqrAttacked || sqr + 11 == sqrAttacked)
 					{
 						return true;
 					}
 				}
 				else if (side == BLACK)
 				{
-					if (board.position[sqr + -9] == sqrAttacked || board.position[sqr + -11] == sqrAttacked)
+					if (sqr + -9 == sqrAttacked || sqr + -11 == sqrAttacked)
 					{
 						return true;
 					}
@@ -357,7 +355,7 @@ void Game::genPawnMove(Sqr sqr)
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
 				setEnPassCapBits(move, board.enPassant - moves[0]);
-				setCapturePieceBits(move, board.enPassant - moves[0]);
+				setCapturePieceBits(move, board.position[board.enPassant - moves[0]]);
 				board.moves.push_back(move);
 			}
 		}
@@ -403,22 +401,6 @@ bool Game::makeMove(Move move)
 				}
 				pieceToRemove.erase(itr);
 				break;
-			}
-		}
-	}
-
-	if (PROMOTE(move))
-	{
-		board.position[to] = PROMOTE(move);
-		board.position[from] = EMPTY;
-
-		board.pieces[PROMOTE(move)].push_back(to);
-
-		for (auto itr=board.pieces[PIECE(move)].begin(); itr!=board.pieces[PIECE(move)].end(); ++itr)
-		{
-			if (*itr == from)
-			{
-				board.pieces[PIECE(move)].erase(itr);
 			}
 		}
 	}
@@ -542,15 +524,34 @@ bool Game::makeMove(Move move)
 			}
 		}
 
-		board.position[to] = board.position[from];
-		board.position[from] = EMPTY;
-
-		for (auto& pieceMovingSqr : board.pieces[PIECE(move)])
+		if (PROMOTE(move))
 		{
-			if (pieceMovingSqr == from)
+			board.position[to] = PROMOTE(move);
+			board.position[from] = EMPTY;
+
+			board.pieces[PROMOTE(move)].push_back(to);
+
+			for (auto itr=board.pieces[PIECE(move)].begin(); itr!=board.pieces[PIECE(move)].end(); ++itr)
 			{
-				pieceMovingSqr = to;
-				break;
+				if (*itr == from)
+				{
+					board.pieces[PIECE(move)].erase(itr);
+					break;
+				}
+			}
+		}
+		else
+		{
+			board.position[to] = board.position[from];
+			board.position[from] = EMPTY;
+
+			for (auto& pieceMovingSqr : board.pieces[PIECE(move)])
+			{
+				if (pieceMovingSqr == from)
+				{
+					pieceMovingSqr = to;
+					break;
+				}
 			}
 		}
 	}
@@ -574,18 +575,20 @@ bool Game::makeMove(Move move)
 
 	if (attacked(kingPos, board.side))
 	{
-		// TODO: Ilegal move. take back move
 		takeback();
 		return false;
 	}
-
-	board.moves.clear();
 
 	return true;
 }
 
 void Game::takeback()
 {
+	if (board.moveHistory.size() == 0)
+	{
+		return;
+	}
+
 	Move move = board.moveHistory[board.moveHistory.size() - 1];
 	board.moveHistory.pop_back();
 
@@ -594,16 +597,15 @@ void Game::takeback()
 
 	board.position[from] = PIECE(move);
 	board.pieces[PIECE(move)].push_back(from);
-	board.position[to] = EMPTY;
 
-	if (PROMOTE(move))
+	auto& pieceSqr = board.pieces[board.position[to]];
+	for (auto itr=pieceSqr.begin(); itr!=pieceSqr.end(); itr++)
 	{
-		for (auto itr=board.pieces[PROMOTE(move)].begin(); itr!=board.pieces[PROMOTE(move)].end(); itr++)
+		if (*itr == to)
 		{
-			if (*itr == to)
-			{
-				board.pieces[PROMOTE(move)].erase(itr);
-			}
+			pieceSqr.erase(itr);
+			board.position[to] = EMPTY;
+			break;
 		}
 	}
 
@@ -630,7 +632,11 @@ void Game::takeback()
 		board.fiftyMove--;
 	}
 
-	board.enPassant = ENPASS(board.moveHistory[board.moveHistory.size() - 1]);
+	if (board.moveHistory.size() == 0)
+		board.enPassant = startEnpassant;
+	else
+		board.enPassant = ENPASS(board.moveHistory[board.moveHistory.size() - 1]);
+
 	board.side ^= 1;
 
 	if (board.side == BLACK)

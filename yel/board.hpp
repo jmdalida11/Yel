@@ -36,6 +36,7 @@ public:
 	bool makeMove(Move move);
 	void takeback();
 	Board& getBoard() { return board; }
+	Sqr startEnpassant = 0;
 private:
 	Board board;
 };
