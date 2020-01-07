@@ -555,16 +555,27 @@ bool Game::makeMove(Move move)
 		}
 	}
 
+	board.fiftyMove++;
+
+	if (isPawn[PIECE(move)] || ISCAP(move))
+	{
+		board.fiftyMove = 0;
+	}
+
 	Sqr kingPos = board.side == WHITE ? board.pieces[wK][0] : board.pieces[bK][0];
 
 	board.enPassant = ENPASS(move);
 	board.side ^= 1;
 
+	if (board.side == WHITE)
+		board.hply++;
+
 	board.moveHistory.push_back(move);
 
-	if (attacked(kingPos, board.side ^ 1))
+	if (attacked(kingPos, board.side))
 	{
 		// TODO: Ilegal move. take back move
+		takeback();
 		return false;
 	}
 
@@ -575,7 +586,55 @@ bool Game::makeMove(Move move)
 
 void Game::takeback()
 {
+	Move move = board.moveHistory[board.moveHistory.size() - 1];
+	board.moveHistory.pop_back();
 
+	Sqr from = FROM(move);
+	Sqr to = TO(move);
+
+	board.position[from] = PIECE(move);
+	board.pieces[PIECE(move)].push_back(from);
+	board.position[to] = EMPTY;
+
+	if (PROMOTE(move))
+	{
+		for (auto itr=board.pieces[PROMOTE(move)].begin(); itr!=board.pieces[PROMOTE(move)].end(); itr++)
+		{
+			if (*itr == to)
+			{
+				board.pieces[PROMOTE(move)].erase(itr);
+			}
+		}
+	}
+
+	if (ISCAP(move))
+	{
+		if (ENPASSCAP(move))
+		{
+			board.position[ENPASSCAP(move)] = PIECECAP(move);
+			board.pieces[PIECECAP(move)].push_back(ENPASSCAP(move));
+		}
+		else
+		{
+			board.position[to] = PIECECAP(move);
+			board.pieces[PIECECAP(move)].push_back(to);
+		}
+	}
+
+	if (ISCAP(move) || isPawn[PIECE(move)])
+	{
+		board.fiftyMove = 0;
+	}
+	else if (board.fiftyMove > 0)
+	{
+		board.fiftyMove--;
+	}
+
+	board.enPassant = ENPASS(board.moveHistory[board.moveHistory.size() - 1]);
+	board.side ^= 1;
+
+	if (board.side == BLACK)
+		board.hply--;
 }
 
 } // namespace board
