@@ -59,10 +59,17 @@ enum : Sqr
 	a8 = 91, b8, c8, d8, e8, f8, g8, h8
 };
 
-inline std::string fileRankChar()
+static std::string sqrChar[]
 {
-	return "";
-}
+	"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+	"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+	"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+	"a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+	"a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+	"a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+	"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+	"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"
+};
 
 enum : Sqr
 {
@@ -284,5 +291,14 @@ const static Sqr mailbox64[64]
 	81, 82, 83, 84, 85, 86, 87, 88,
 	91, 92, 93, 94, 95, 96, 97, 98
 };
+
+inline void printMoves(std::vector<Move>& moves)
+{
+	print("Available Moves:");
+	for (Move move : moves)
+	{
+		std::cout << sqrChar[mailbox[FROM(move)]] <<  sqrChar[mailbox[TO(move)]] << std::endl;
+	}
+}
 
 } // namespace defs

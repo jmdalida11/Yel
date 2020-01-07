@@ -42,6 +42,9 @@ void Game::printBoard()
 		std::cout << "  " << x << " ";
 	}
 	print("");
+	#ifdef DEBUG
+	printMoves(board.moves);
+	#endif
 }
 
 bool Game::attacked(Sqr sqrAttacked, int side)
@@ -123,7 +126,6 @@ bool Game::attacked(Sqr sqrAttacked, int side)
 
 	return false;
 }
-
 
 void Game::generateMove()
 {
@@ -234,7 +236,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 				board.moves.push_back(move);
 			}
 		}
-		if (BQSC(board.castle) && board.side == BLACK)
+		if (BKSC(board.castle) && board.side == BLACK)
 		{
 			if (board.position[f8] == EMPTY && board.position[g8] == EMPTY
 				&& board.position[e8] == bK && board.position[h8] == bR)
@@ -493,6 +495,7 @@ bool Game::makeMove(Move move)
 {
 	Sqr from = FROM(move);
 	Sqr to = TO(move);
+	bool illegalCastling = false;
 
 	if (ISCAP(move))
 	{
@@ -526,6 +529,11 @@ bool Game::makeMove(Move move)
 
 			if (WKSC(dir))
 			{
+				if (attacked(e1, BLACK) || attacked(f1, BLACK))
+				{
+					illegalCastling = true;
+				}
+
 				board.position[to] = wK;
 				board.position[from] = EMPTY;
 				board.position[f1] = wR;
@@ -543,6 +551,11 @@ bool Game::makeMove(Move move)
 			}
 			else if (WQSC(dir))
 			{
+				if (attacked(e1, BLACK) || attacked(d1, BLACK))
+				{
+					illegalCastling = true;
+				}
+
 				board.position[to] = wK;
 				board.position[from] = EMPTY;
 				board.position[d1] = wR;
@@ -566,6 +579,11 @@ bool Game::makeMove(Move move)
 
 			if (BKSC(dir))
 			{
+				if (attacked(e8, WHITE) || attacked(f8, WHITE))
+				{
+					illegalCastling = true;
+				}
+
 				board.position[to] = bK;
 				board.position[from] = EMPTY;
 				board.position[f8] = bR;
@@ -584,6 +602,11 @@ bool Game::makeMove(Move move)
 			}
 			else if (BQSC(dir))
 			{
+				if (attacked(e8, WHITE) || attacked(d8, WHITE))
+				{
+					illegalCastling = true;
+				}
+
 				board.position[to] = bK;
 				board.position[from] = EMPTY;
 				board.position[d8] = bR;
@@ -656,7 +679,7 @@ bool Game::makeMove(Move move)
 
 	board.moveHistory.push_back(move);
 
-	if (attacked(kingPos, board.side))
+	if (attacked(kingPos, board.side) || illegalCastling)
 	{
 		takeback();
 		return false;
