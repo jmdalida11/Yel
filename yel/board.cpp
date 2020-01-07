@@ -194,45 +194,85 @@ void Game::genCastlingMove(Piece pieceIndex)
 	{
 		if (WKSC(board.castle) && board.side == WHITE)
 		{
-			if (board.position[f1] == EMPTY && board.position[g1] == EMPTY)
+			if (board.position[f1] == EMPTY && board.position[g1] == EMPTY
+				&& board.position[e1] == wK && board.position[h1] == wR)
 			{
 				Move move = 0;
 				moveFromTo(move, e1, g1);
 				addPieceBits(move, wK);
 				addCastlingBits(move, 8);
+
+				uint64_t perms = 15;
+
+				if (board.castle & 8)
+					perms &= 7;
+				if (board.castle & 4)
+					perms &= 11;
+
+				setCastlePerm(move, perms);
 				board.moves.push_back(move);
 			}
 		}
 		if (WQSC(board.castle) && board.side == WHITE)
 		{
-			if (board.position[d1] == EMPTY && board.position[c1] == EMPTY)
+			if (board.position[d1] == EMPTY && board.position[c1] == EMPTY
+				&& board.position[e1] == wK && board.position[a1] == wR)
 			{
 				Move move = 0;
 				moveFromTo(move, e1, c1);
 				addPieceBits(move, wK);
 				addCastlingBits(move, 4);
+
+				uint64_t perms = 15;
+
+				if (board.castle & 8)
+					perms &= 7;
+				if (board.castle & 4)
+					perms &= 11;
+
+				setCastlePerm(move, perms);
 				board.moves.push_back(move);
 			}
 		}
 		if (BQSC(board.castle) && board.side == BLACK)
 		{
-			if (board.position[f8] == EMPTY && board.position[g8] == EMPTY)
+			if (board.position[f8] == EMPTY && board.position[g8] == EMPTY
+				&& board.position[e8] == bK && board.position[h8] == bR)
 			{
 				Move move = 0;
 				moveFromTo(move, e8, g8);
 				addPieceBits(move, bK);
 				addCastlingBits(move, 2);
+
+				uint64_t perms = 15;
+
+				if (board.castle & 2)
+					perms &= 13;
+				if (board.castle & 1)
+					perms &= 14;
+
+				setCastlePerm(move, perms);
 				board.moves.push_back(move);
 			}
 		}
 		if (BQSC(board.castle) && board.side == BLACK)
 		{
-			if (board.position[d8] == EMPTY && board.position[c8] == EMPTY)
+			if (board.position[d8] == EMPTY && board.position[c8] == EMPTY
+				&& board.position[e8] == bK && board.position[a8] == bR)
 			{
 				Move move = 0;
 				moveFromTo(move, e8, c8);
 				addPieceBits(move, bK);
 				addCastlingBits(move, 1);
+
+				uint64_t perms = 15;
+
+				if (board.castle & 2)
+					perms &= 13;
+				if (board.castle & 1)
+					perms &= 14;
+
+				setCastlePerm(move, perms);
 				board.moves.push_back(move);
 			}
 		}
@@ -373,6 +413,79 @@ void Game::genPieceMove(Sqr from, Sqr to, Piece pieceIndex, bool isCapture)
 		setCapturePieceBits(move, board.position[to]);
 	}
 
+	if (board.castle != 0 && isKing[PIECE(move)])
+	{
+		if (board.side == WHITE)
+		{
+			uint64_t perms = 15;
+
+			if (board.castle & 8)
+				perms &= 7;
+			if (board.castle & 4)
+				perms &= 11;
+
+			setCastlePerm(move, perms);
+		}
+		else if (board.side == BLACK)
+		{
+			uint64_t perms = 15;
+
+			if (board.castle & 2)
+					perms &= 13;
+			if (board.castle & 1)
+				perms &= 14;
+
+			setCastlePerm(move, perms);
+		}
+	}
+
+	if (board.castle != 0 && isRook[PIECE(move)])
+	{
+		if (board.side == WHITE)
+		{
+			if (from == h1)
+			{
+				uint64_t perms = 15;
+
+				if (board.castle & 8)
+					perms &= 7;
+
+				setCastlePerm(move, perms);
+			}
+			else if (from == a1)
+			{
+				uint64_t perms = 15;
+
+				if (board.castle & 4)
+					perms &= 11;
+
+				setCastlePerm(move, perms);
+			}
+
+		}
+		else if (board.side == BLACK)
+		{
+			if (from == h8)
+			{
+				uint64_t perms = 15;
+
+				if (board.castle & 2)
+					perms &= 13;
+
+				setCastlePerm(move, perms);
+			}
+			else if (from == a8)
+			{
+				uint64_t perms = 15;
+
+				if (board.castle & 1)
+					perms &= 14;
+
+				setCastlePerm(move, perms);
+			}
+		}
+	}
+
 	board.moves.push_back(move);
 }
 
@@ -446,8 +559,6 @@ bool Game::makeMove(Move move)
 					}
 				}
 			}
-
-			board.castle &= 3;
 		}
 		else if (board.side == BLACK)
 		{
@@ -489,41 +600,10 @@ bool Game::makeMove(Move move)
 					}
 				}
 			}
-
-			board.castle &= 12;
 		}
 	}
 	else
 	{
-		if (board.castle != 0 && isKing[PIECE(move)])
-		{
-			if (board.side == WHITE)
-			{
-				board.castle &= 3;
-			}
-			else if (board.side == BLACK)
-			{
-				board.castle &= 12;
-			}
-		}
-		else if (board.castle != 0 && isRook[PIECE(move)])
-		{
-			if (board.side == WHITE)
-			{
-				if (from == h1)
-					board.castle &= 7;
-				if (from == a1)
-					board.castle &= 11;
-			}
-			else if (board.side == BLACK)
-			{
-				if (from == h8)
-					board.castle &= 13;
-				if (from == a8)
-					board.castle &= 14;
-			}
-		}
-
 		if (PROMOTE(move))
 		{
 			board.position[to] = PROMOTE(move);
@@ -555,6 +635,9 @@ bool Game::makeMove(Move move)
 			}
 		}
 	}
+
+	if (CASTLEPERM(move))
+		board.castle &= CASTLEPERM(move);
 
 	board.fiftyMove++;
 
@@ -595,17 +678,96 @@ void Game::takeback()
 	Sqr from = FROM(move);
 	Sqr to = TO(move);
 
-	board.position[from] = PIECE(move);
-	board.pieces[PIECE(move)].push_back(from);
-
-	auto& pieceSqr = board.pieces[board.position[to]];
-	for (auto itr=pieceSqr.begin(); itr!=pieceSqr.end(); itr++)
+	if (CASTBITS(move))
 	{
-		if (*itr == to)
+		uint8_t dir = CASTBITS(move);
+
+		if (WKSC(dir))
 		{
-			pieceSqr.erase(itr);
-			board.position[to] = EMPTY;
-			break;
+			board.position[g1] = EMPTY;
+			board.position[e1] = wK;
+			board.position[f1] = EMPTY;
+			board.position[h1] = wR;
+
+			board.pieces[wK][0] = e1;
+			for (auto& pieceMovingSqr : board.pieces[wR])
+			{
+				if (pieceMovingSqr == f1)
+				{
+					pieceMovingSqr = h1;
+					break;
+				}
+			}
+		}
+		else if(WQSC(dir))
+		{
+			board.position[c1] = EMPTY;
+			board.position[e1] = wK;
+			board.position[d1] = EMPTY;
+			board.position[a1] = wR;
+
+			board.pieces[wK][0] = e1;
+
+			for (auto& pieceMovingSqr : board.pieces[wR])
+			{
+				if (pieceMovingSqr == d1)
+				{
+					pieceMovingSqr = a1;
+					break;
+				}
+			}
+		}
+		else if(BKSC(dir))
+		{
+			board.position[g8] = EMPTY;
+			board.position[e8] = bK;
+			board.position[f8] = EMPTY;
+			board.position[h8] = bR;
+
+			board.pieces[bK][0] = e8;
+
+			for (auto& pieceMovingSqr : board.pieces[bR])
+			{
+				if (pieceMovingSqr == f8)
+				{
+					pieceMovingSqr = h8;
+					break;
+				}
+			}
+		}
+		else if(BQSC(dir))
+		{
+			board.position[c8] = EMPTY;
+			board.position[e8] = bK;
+			board.position[d8] = EMPTY;
+			board.position[a8] = bR;
+
+			board.pieces[bK][0] = e8;
+
+			for (auto& pieceMovingSqr : board.pieces[bR])
+			{
+				if (pieceMovingSqr == d8)
+				{
+					pieceMovingSqr = a8;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		board.position[from] = PIECE(move);
+		board.pieces[PIECE(move)].push_back(from);
+
+		auto& pieceSqr = board.pieces[board.position[to]];
+		for (auto itr=pieceSqr.begin(); itr!=pieceSqr.end(); itr++)
+		{
+			if (*itr == to)
+			{
+				pieceSqr.erase(itr);
+				board.position[to] = EMPTY;
+				break;
+			}
 		}
 	}
 
@@ -630,6 +792,16 @@ void Game::takeback()
 	else if (board.fiftyMove > 0)
 	{
 		board.fiftyMove--;
+	}
+
+	if (CASTLEPERM(move))
+	{
+		int perms = CASTLEPERM(move);
+		for (int i = 0; i < 4; i++)
+		{
+			perms ^= 1 << i;
+		}
+		board.castle |= perms;
 	}
 
 	if (board.moveHistory.size() == 0)

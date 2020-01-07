@@ -23,6 +23,7 @@
 #define ENPASS(x) ((x >> 29) & 0x7F)
 #define ENPASSCAP(x) ((x >> 36) & 0x7F)
 #define PIECECAP(x) ((x >> 43) & 0xF)
+#define CASTLEPERM(x) ((x >> 47) & 0xF)
 
 #define WKSC(x) (x & 8)
 #define WQSC(x) (x & 4)
@@ -190,13 +191,18 @@ inline void setEnPassCapBits(Move& move, Sqr s)
 
 inline void addCastlingBits(Move& move, Sqr s)
 {
-	move |= s << 16;
+	move |= (s & 0xF) << 16;
 }
 
 inline void setCapturePieceBits(Move& move, Piece p)
 {
 	uint64_t piece = (p & 0xF);
 	move |= piece << 43;
+}
+
+inline void setCastlePerm(Move& move, uint64_t perms)
+{
+	move |= (perms & 0xF) << 47;
 }
 
 inline std::string getPieceChar(const Piece& piece)
