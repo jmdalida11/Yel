@@ -297,7 +297,11 @@ inline void printMoves(std::vector<Move>& moves)
 	print("Available Moves:");
 	for (Move move : moves)
 	{
-		std::cout << sqrChar[mailbox[FROM(move)]] <<  sqrChar[mailbox[TO(move)]] << std::endl;
+		std::string pieces = "**nbrq**nbrq*";
+		std::string p = "";
+		if (ISPROMOTION(move))
+			p += pieces[PROMOTE(move)];
+		std::cout << sqrChar[mailbox[FROM(move)]] <<  sqrChar[mailbox[TO(move)]] << p << std::endl;
 	}
 }
 

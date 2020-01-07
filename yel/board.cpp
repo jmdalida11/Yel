@@ -42,9 +42,6 @@ void Game::printBoard()
 		std::cout << "  " << x << " ";
 	}
 	print("");
-	#ifdef DEBUG
-	printMoves(board.moves);
-	#endif
 }
 
 bool Game::attacked(Sqr sqrAttacked, int side)

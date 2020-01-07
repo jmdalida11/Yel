@@ -24,6 +24,37 @@ int main()
 		std::cin >> m;
 
 		if (m == "quit") break;
+		if (m == "fen")
+		{
+			print("Please Enter valid fen");
+			std::string fen;
+			std::string pos = "";
+			std::string side = "";
+			std::string castPerm = "";
+			std::string enPass = "";
+			std::string fifty = "";
+			std::string fullmove = "";
+
+			std::cin >> pos >> side >> castPerm >> enPass >> fifty >> fullmove;
+
+			fen = pos + " " + side + " " + castPerm + " " + enPass + " " + fifty + " " + fullmove;
+
+			game.getBoard().moves.clear();
+			game.init();
+			for(int i=wP; i<=bK; i++)
+			{
+				game.getBoard().pieces[i].clear();
+			}
+			utils::loadFen(fen, game);
+			game.generateMove();
+
+			continue;
+		}
+		if (m == "moves")
+		{
+			printMoves(game.getBoard().moves);
+			continue;
+		}
 		if (m == "takeback")
 		{
 			game.takeback();
