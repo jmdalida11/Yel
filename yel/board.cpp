@@ -20,6 +20,7 @@ void Game::init()
 			board.position[sqr] = EMPTY;
 		}
 	}
+	initHash();
 }
 
 void Game::printBoard()
@@ -674,7 +675,10 @@ bool Game::makeMove(Move move)
 	if (board.side == WHITE)
 		board.hply++;
 
+	board.ply++;
 	board.moveHistory.push_back(move);
+
+	setPositionKey();
 
 	if (attacked(kingPos, board.side) || illegalCastling)
 	{
@@ -830,9 +834,22 @@ void Game::takeback()
 		board.enPassant = ENPASS(board.moveHistory[board.moveHistory.size() - 1]);
 
 	board.side ^= 1;
+	board.ply--;
+
+	board.histHash.pop_back();
+	if (board.histHash.size() > 0)
+	{
+		board.hash = board.histHash[board.histHash.size() - 1];
+	}
 
 	if (board.side == BLACK)
 		board.hply--;
+}
+
+void Game::setPositionKey()
+{
+	setHash(board.hash, board.position, board.side, board.enPassant);
+	board.histHash.push_back(board.hash);
 }
 
 } // namespace board

@@ -305,4 +305,44 @@ inline void printMoves(std::vector<Move>& moves)
 	}
 }
 
+static int hash_piece[12][64];
+static int hash_ep[64];
+static int hash_side {0};
+
+static inline void initHash()
+{
+	srand(0);
+
+	for (Piece piece = wP; piece < bK; ++piece)
+	{
+		for (auto sqr = 0; sqr < 64; ++sqr)
+		{
+			hash_piece[piece][sqr] = rand();
+		}
+	}
+
+	for (int i = 0; i < 64; ++i)
+	{
+		hash_ep[i] = rand();
+	}
+
+	hash_side = rand();
+}
+
+static inline void setHash(int& hash, Sqr* position, uint8_t side, Sqr enPassant)
+{
+	for (Sqr sqr = 0; sqr < 64; ++sqr)
+	{
+		if (position[mailbox64[sqr]] != EMPTY)
+		{
+			hash ^= hash_piece[position[mailbox64[sqr]]][sqr];
+		}
+	}
+
+	if (side == BLACK)
+		hash ^= hash_side;
+	if (enPassant != 0)
+		hash ^= hash_ep[mailbox[enPassant]];
+}
+
 } // namespace defs

@@ -18,8 +18,10 @@ struct Board
 	int fiftyMove {0};
 	int ply {0};
 	int hply {0};
+	int hash {0};
 	std::vector<Move> moveHistory {};
 	std::vector<Move> moves {};
+	std::vector<int> histHash {};
 };
 
 class Game
@@ -35,6 +37,7 @@ public:
 	void genPieceMove(Sqr from, Sqr to, Piece piece, bool isCapture);
 	bool makeMove(Move move);
 	void takeback();
+	void setPositionKey();
 	Board& getBoard() { return board; }
 	Sqr startEnpassant = 0;
 private:

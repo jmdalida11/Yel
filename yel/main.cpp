@@ -10,12 +10,14 @@ int main()
 	board::Game game;
 	game.init();
 	utils::loadFen(Startfen, game);
+	game.setPositionKey();
 	game.generateMove();
 
 	while (true)
 	{
 		print("");
 		game.printBoard();
+		std::cout << "Position Key: " << game.getBoard().hash << std::endl;
 
 		std::string turn = game.getBoard().side == defs::WHITE ? "White" : "Black";
 		std::cout << turn << " Enter Move (Ex. e2e4): " << std::endl;
@@ -40,12 +42,14 @@ int main()
 			fen = pos + " " + side + " " + castPerm + " " + enPass + " " + fifty + " " + fullmove;
 
 			game.getBoard().moves.clear();
+			game.getBoard().histHash.clear();
 			game.init();
 			for(int i=wP; i<=bK; i++)
 			{
 				game.getBoard().pieces[i].clear();
 			}
 			utils::loadFen(fen, game);
+			game.setPositionKey();
 			game.generateMove();
 
 			continue;
