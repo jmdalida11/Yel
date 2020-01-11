@@ -36,11 +36,12 @@ void Game::printBoard()
 		std::cout << std::endl;
 	}
 
+	print("");
 	std::cout << "  ";
 	for(Sqr file=FILE_A; file<=FILE_H; ++file)
 	{
 		char x = (char) (97 + file);
-		std::cout << "  " << x << " ";
+		std::cout << " " << x << " ";
 	}
 	print("");
 }
@@ -850,6 +851,16 @@ void Game::setPositionKey()
 {
 	setHash(board.hash, board.position, board.side, board.enPassant);
 	board.histHash.push_back(board.hash);
+}
+
+bool Game::isRepeat()
+{
+	for (int i=board.histHash.size()-board.fiftyMove-1; i<board.histHash.size()-1; ++i)
+	{
+		if (board.hash == board.histHash[i])
+			return true;
+	}
+	return false;
 }
 
 } // namespace board

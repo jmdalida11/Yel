@@ -17,7 +17,7 @@ int main()
 	{
 		print("");
 		game.printBoard();
-		std::cout << "Position Key: " << game.getBoard().hash << std::endl;
+		std::cout << "Position Key: " << std::hex << game.getBoard().hash << std::endl;
 
 		std::string turn = game.getBoard().side == defs::WHITE ? "White" : "Black";
 		std::cout << turn << " Enter Move (Ex. e2e4): " << std::endl;
@@ -75,6 +75,11 @@ int main()
 				game.getBoard().moves.clear();
 				game.generateMove();
 			}
+		}
+
+		if (game.isRepeat())
+		{
+			std::cout << "Position Repeated!" << std::endl;
 		}
 	}
 }

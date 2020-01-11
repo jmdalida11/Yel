@@ -216,19 +216,19 @@ inline std::string getPieceChar(const Piece& piece)
 {
 	switch(piece)
 	{
-		case wP: return "wP";
-		case wN: return "wN";
-		case wB: return "wB";
-		case wR: return "wR";
-		case wQ: return "wQ";
-		case wK: return "wK";
-		case bP: return "bP";
-		case bN: return "bN";
-		case bB: return "bB";
-		case bR: return "bR";
-		case bQ: return "bQ";
-		case bK: return "bK";
-		case EMPTY: return "--";
+		case wP: return "P";
+		case wN: return "N";
+		case wB: return "B";
+		case wR: return "R";
+		case wQ: return "Q";
+		case wK: return "K";
+		case bP: return "p";
+		case bN: return "n";
+		case bB: return "b";
+		case bR: return "r";
+		case bQ: return "q";
+		case bK: return "k";
+		case EMPTY: return "-";
 	}
 	return "x";
 }
@@ -305,28 +305,37 @@ inline void printMoves(std::vector<Move>& moves)
 	}
 }
 
-static int hash_piece[12][64];
-static int hash_ep[64];
+static int hash_piece[13][64];
 static int hash_side {0};
+
+static int hashRand()
+{
+	int i;
+	int rHash = 0;
+    
+	for (i = 0; i < 32; ++i)
+		rHash ^= rand() << i;
+	return rHash;
+}
 
 static inline void initHash()
 {
 	srand(0);
 
-	for (Piece piece = wP; piece < bK; ++piece)
+	for (Piece piece = wP; piece <= bK; ++piece)
 	{
 		for (auto sqr = 0; sqr < 64; ++sqr)
 		{
-			hash_piece[piece][sqr] = rand();
+			hash_piece[piece][sqr] = hashRand();
 		}
 	}
 
 	for (int i = 0; i < 64; ++i)
 	{
-		hash_ep[i] = rand();
+		hash_piece[0][i] = hashRand();
 	}
 
-	hash_side = rand();
+	hash_side = hashRand();
 }
 
 static inline void setHash(int& hash, Sqr* position, uint8_t side, Sqr enPassant)
@@ -342,7 +351,7 @@ static inline void setHash(int& hash, Sqr* position, uint8_t side, Sqr enPassant
 	if (side == BLACK)
 		hash ^= hash_side;
 	if (enPassant != 0)
-		hash ^= hash_ep[mailbox[enPassant]];
+		hash ^= hash_piece[0][mailbox[enPassant]];
 }
 
 } // namespace defs

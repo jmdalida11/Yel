@@ -38,6 +38,7 @@ public:
 	bool makeMove(Move move);
 	void takeback();
 	void setPositionKey();
+	bool isRepeat();
 	Board& getBoard() { return board; }
 	Sqr startEnpassant = 0;
 private:
