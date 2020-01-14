@@ -28,7 +28,7 @@ int evaluation(board::Game& game)
         whiteScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
     }
 
-    for (int pieceIndex=wP; pieceIndex<=wK; pieceIndex++)
+    for (int pieceIndex=bP; pieceIndex<=bK; pieceIndex++)
     {
         blackScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
     }
