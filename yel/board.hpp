@@ -22,6 +22,7 @@ struct Board
 	std::vector<Move> moveHistory {};
 	std::vector<Move> moves {};
 	std::vector<int> histHash {};
+	Move pv[32];
 };
 
 class Game
@@ -38,7 +39,9 @@ public:
 	bool makeMove(Move move);
 	void takeback();
 	void setPositionKey();
-	bool isRepeat();
+	int repeat();
+	void clearPv(board::Game& game);
+	void assetBoard();
 	Board& getBoard() { return board; }
 	Sqr startEnpassant = 0;
 private:

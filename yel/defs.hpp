@@ -312,7 +312,7 @@ static int hashRand()
 {
 	int i;
 	int rHash = 0;
-    
+
 	for (i = 0; i < 32; ++i)
 		rHash ^= rand() << i;
 	return rHash;
@@ -352,6 +352,20 @@ static inline void setHash(int& hash, Sqr* position, uint8_t side, Sqr enPassant
 		hash ^= hash_side;
 	if (enPassant != 0)
 		hash ^= hash_piece[0][mailbox[enPassant]];
+}
+
+static inline void printPv(Move* pv)
+{
+    for (int i=0; i<32; i++)
+    {
+        Move move = pv[i];
+        std::string pieces = "**nbrq**nbrq*";
+        std::string p = "";
+        if (ISPROMOTION(move))
+            p += pieces[PROMOTE(move)];
+        std::cout << sqrChar[mailbox[FROM(move)]] << sqrChar[mailbox[TO(move)]] << p << " ";
+    }
+    print("");
 }
 
 } // namespace defs

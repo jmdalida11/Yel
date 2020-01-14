@@ -853,14 +853,32 @@ void Game::setPositionKey()
 	board.histHash.push_back(board.hash);
 }
 
-bool Game::isRepeat()
+int Game::repeat()
 {
+	int count = 0;
 	for (int i=board.histHash.size()-board.fiftyMove-1; i<board.histHash.size()-1; ++i)
 	{
 		if (board.hash == board.histHash[i])
-			return true;
+			++count;
 	}
-	return false;
+
+	return count;
+}
+
+void Game::clearPv(board::Game& game)
+{
+    for (int i=0; i<32; i++)
+    {
+        game.getBoard().pv[i] = 0;
+    }
+}
+
+void Game::assetBoard()
+{
+	for (int i=0; i<64; i++)
+	{
+
+	}
 }
 
 } // namespace board

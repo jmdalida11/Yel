@@ -1,5 +1,7 @@
 #include "utils.hpp"
 
+extern void search(board::Game& game);
+
 int main()
 {
 	print("Starting Yel 1.0 Chess Engine!");
@@ -66,6 +68,14 @@ int main()
 			game.generateMove();
 			continue;
 		}
+		if (m == "go")
+		{
+			search(game);
+			printPv(game.getBoard().pv);
+			game.makeMove(game.getBoard().pv[0]);
+			game.getBoard().moves.clear();
+   			game.generateMove();
+		}
 
 		const auto move = utils::parseMove(m, game);
 		if (move)
@@ -75,11 +85,6 @@ int main()
 				game.getBoard().moves.clear();
 				game.generateMove();
 			}
-		}
-
-		if (game.isRepeat())
-		{
-			std::cout << "Position Repeated!" << std::endl;
 		}
 	}
 }
