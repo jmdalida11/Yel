@@ -5,14 +5,6 @@ using namespace defs;
 
 extern int evaluation(board::Game& game);
 
-void copyMoves(board::Game& game, std::vector<Move>& moves)
-{
-    for (int i=0; i<game.getBoard().moves.size(); i++)
-    {
-        moves.push_back(game.getBoard().moves[i]);
-    }
-}
-
 int quiesce(int alpha,int beta)
 {
     return 0;
@@ -29,12 +21,10 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
     if (game.repeat() && game.getBoard().ply)
         return 0;
 
-    game.getBoard().moves.clear();
     game.generateMove();
 
-    std::vector<Move> moves {};
-
-    copyMoves(game, moves);
+    std::vector<Move> moves = game.getBoard().moves;
+    game.getBoard().moves.clear();
 
     for (const auto move : moves)
     {
@@ -73,7 +63,7 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
 
 void search(board::Game& game)
 {
-    int maxDepth = 8;
+    int maxDepth = 6;
     game.getBoard().ply = 0;
     game.clearPv(game);
     alphaBeta(-INT_MAX, INT_MAX, maxDepth, game);
