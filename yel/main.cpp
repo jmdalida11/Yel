@@ -72,7 +72,7 @@ int main()
 		{
 			search(game);
 			printPv(game.getBoard().pv);
-			game.makeMove(game.getBoard().pv[0]);
+			game.makeMove(game.getBoard().pv[0].m);
 			game.getBoard().moves.clear();
    			game.generateMove();
 		}

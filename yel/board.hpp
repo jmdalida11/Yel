@@ -22,7 +22,7 @@ struct Board
 	std::vector<Move> moveHistory {};
 	std::vector<Move> moves {};
 	std::vector<int> histHash {};
-	Move pv[32];
+	defs::MoveVal pv[32];
 };
 
 class Game

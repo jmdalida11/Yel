@@ -37,8 +37,11 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
         game.takeback();
 
         if (score > alpha){
-            game.getBoard().pv[game.getBoard().ply] = move;
             alpha = score;
+
+            game.getBoard().pv[game.getBoard().ply].m = move;
+            game.getBoard().pv[game.getBoard().ply].s = score;
+
             if (score >= beta){
                 return beta;
             }

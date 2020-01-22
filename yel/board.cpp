@@ -869,16 +869,9 @@ void Game::clearPv(board::Game& game)
 {
     for (int i=0; i<32; i++)
     {
-        game.getBoard().pv[i] = 0;
+        game.getBoard().pv[i].m = 0;
+        game.getBoard().pv[i].s = 0;
     }
-}
-
-void Game::assetBoard()
-{
-	for (int i=0; i<64; i++)
-	{
-
-	}
 }
 
 } // namespace board

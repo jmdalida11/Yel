@@ -354,11 +354,11 @@ static inline void setHash(int& hash, Sqr* position, uint8_t side, Sqr enPassant
 		hash ^= hash_piece[0][mailbox[enPassant]];
 }
 
-static inline void printPv(Move* pv)
+static inline void printPv(MoveVal* pv)
 {
     for (int i=0; i<32; i++)
     {
-        Move move = pv[i];
+        Move move = pv[i].m;
         std::string pieces = "**nbrq**nbrq*";
         std::string p = "";
         if (ISPROMOTION(move))
