@@ -2,12 +2,21 @@
 
 using namespace defs;
 
+#define DOUBLED_PAWN_PENALTY        10
+#define ISOLATED_PAWN_PENALTY       20
+#define BACKWARDS_PAWN_PENALTY      8
+#define PASSED_PAWN_BONUS           20
+#define ROOK_SEMI_OPEN_FILE_BONUS   10
+#define ROOK_OPEN_FILE_BONUS        15
+#define ROOK_ON_SEVENTH_BONUS       20
+
 int pieceValue[13]
 {
     0, 100, 300, 300, 500, 900, 1000, 100, 300, 300, 500, 900, 1000
 };
 
-int flip[64] = {
+int flip[64]
+{
     56,  57,  58,  59,  60,  61,  62,  63,
     48,  49,  50,  51,  52,  53,  54,  55,
     40,  41,  42,  43,  44,  45,  46,  47,
@@ -18,7 +27,8 @@ int flip[64] = {
     0,   1,   2,   3,   4,   5,   6,   7
 };
 
-int pawnPlace[64] = {
+int pawnPlace[64]
+{
     0,   0,   0,   0,   0,   0,   0,   0,
     5,  10,  15,  20,  20,  15,  10,   5,
     4,   8,  12,  16,  16,  12,   8,   4,
@@ -29,6 +39,42 @@ int pawnPlace[64] = {
     0,   0,   0,   0,   0,   0,   0,   0
 };
 
+int knightPlace[64]
+{
+    -10, -10, -10, -10, -10, -10, -10, -10,
+    -10,   0,   0,   0,   0,   0,   0, -10,
+    -10,   0,   5,   5,   5,   5,   0, -10,
+    -10,   0,   5,  10,  10,   5,   0, -10,
+    -10,   0,   5,  10,  10,   5,   0, -10,
+    -10,   0,   5,   5,   5,   5,   0, -10,
+    -10,   0,   0,   0,   0,   0,   0, -10,
+    -10, -20, -10, -10, -10, -10, -20, -10
+};
+
+int bishopPlace[64]
+{
+    -10, -10, -10, -10, -10, -10, -10, -10,
+    -10,   0,   0,   0,   0,   0,   0, -10,
+    -10,   0,   5,   5,   5,   5,   0, -10,
+    -10,   0,   5,  10,  10,   5,   0, -10,
+    -10,   0,   5,  10,  10,   5,   0, -10,
+    -10,   0,   5,   5,   5,   5,   0, -10,
+    -10,   0,   0,   0,   0,   0,   0, -10,
+    -10, -10, -20, -10, -10, -20, -10, -10
+};
+
+int kingPlace[64]
+{
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,   0,   0,   0,   0,   0,   0,
+    0,  45,  40,  -5,   0,   -5,  40,  20
+};
+
 int evaluation(board::Game& game)
 {
     int whiteScore = 0;
@@ -36,30 +82,56 @@ int evaluation(board::Game& game)
 
     for (int pieceIndex=wP; pieceIndex<=wK; pieceIndex++)
     {
-        if (pieceIndex == wP)
+        whiteScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
+
+        for (const auto& pieceSqr : game.getBoard().pieces[pieceIndex])
         {
-            for (const auto& pawnSqr : game.getBoard().pieces[pieceIndex])
+            int piecePos = mailbox[pieceSqr];
+
+            if (pieceIndex == wP)
             {
-                int piecePos = mailbox[pawnSqr];
-                whiteScore += pawnPlace[piecePos];
+                whiteScore += pawnPlace[flip[piecePos]];
+            }
+            else if (pieceIndex == wN)
+            {
+                whiteScore += knightPlace[flip[piecePos]];
+            }
+            else if (pieceIndex == wB)
+            {
+                whiteScore += bishopPlace[flip[piecePos]];
+            }
+            else if (pieceIndex == wK)
+            {
+                whiteScore += kingPlace[flip[piecePos]];
             }
         }
-
-        whiteScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
     }
 
     for (int pieceIndex=bP; pieceIndex<=bK; pieceIndex++)
     {
-        if (pieceIndex == bP)
+        blackScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
+
+        for (const auto& pieceSqr : game.getBoard().pieces[pieceIndex])
         {
-            for (const auto& pawnSqr : game.getBoard().pieces[pieceIndex])
+            int piecePos = mailbox[pieceSqr];
+
+            if (pieceIndex == bP)
             {
-                int piecePos = mailbox[pawnSqr];
-                blackScore += pawnPlace[flip[piecePos]];
+                blackScore += pawnPlace[piecePos];
+            }
+            else if (pieceIndex == bN)
+            {
+                blackScore += knightPlace[piecePos];
+            }
+            else if (pieceIndex == bB)
+            {
+                blackScore += bishopPlace[piecePos];
+            }
+            else if (pieceIndex == bK)
+            {
+                blackScore += kingPlace[piecePos];
             }
         }
-
-        blackScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
     }
 
     if (game.getBoard().side == BLACK)
