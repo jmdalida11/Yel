@@ -13,7 +13,7 @@ int quiesce(int alpha,int beta)
 int alphaBeta(int alpha, int beta, int depth, board::Game& game)
 {
     int score;
-    bool noLegalMove = false;
+    bool noLegalMove = true;
 
     if (depth == 0)
         return evaluation(game);
@@ -32,7 +32,7 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
             continue;
         }
 
-        noLegalMove = true;
+        noLegalMove = false;
         score = -alphaBeta(-beta, -alpha, depth-1, game);
         game.takeback();
 
