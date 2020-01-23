@@ -5,9 +5,24 @@ using namespace defs;
 
 extern int evaluation(board::Game& game);
 
+void pickMove(int moveIndex, std::vector<MoveVal>& moves)
+{
+    int bestMoveIndex = moveIndex;
+
+    for(int i = moveIndex; i < moves.size(); ++i) {
+        if(moves[i].s > moves[bestMoveIndex].s) {
+            bestMoveIndex = i;
+        }
+    }
+
+    MoveVal temp = moves[moveIndex];
+    moves[moveIndex] = moves[bestMoveIndex];
+    moves[bestMoveIndex] = temp;
+}
+
 int quiesce(int alpha, int beta, board::Game& game)
 {
-    if (game.getBoard().ply >= 32)
+    if (game.getBoard().ply >= 12)
         return evaluation(game);
 
     int score = evaluation(game);
@@ -19,12 +34,12 @@ int quiesce(int alpha, int beta, board::Game& game)
 
     game.generateMove(true);
 
-    std::vector<Move> moves = game.getBoard().moves;
+    std::vector<MoveVal> moves = game.getBoard().moves;
     game.getBoard().moves.clear();
 
     for (const auto move : moves)
     {
-        if (!game.makeMove(move)){
+        if (!game.makeMove(move.m)){
             continue;
         }
 
@@ -34,7 +49,7 @@ int quiesce(int alpha, int beta, board::Game& game)
         if (score > alpha){
             alpha = score;
 
-            game.getBoard().pv[game.getBoard().ply].m = move;
+            game.getBoard().pv[game.getBoard().ply].m = move.m;
             game.getBoard().pv[game.getBoard().ply].s = score;
 
             if (score >= beta){
@@ -59,12 +74,14 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
 
     game.generateMove(false);
 
-    std::vector<Move> moves = game.getBoard().moves;
+    std::vector<MoveVal> moves = game.getBoard().moves;
     game.getBoard().moves.clear();
 
-    for (const auto move : moves)
+    for (int i=0; i<moves.size(); i++)
     {
-        if (!game.makeMove(move)){
+        pickMove(i, moves);
+
+        if (!game.makeMove(moves[i].m)){
             continue;
         }
 
@@ -75,7 +92,7 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
         if (score > alpha){
             alpha = score;
 
-            game.getBoard().pv[game.getBoard().ply].m = move;
+            game.getBoard().pv[game.getBoard().ply].m = moves[i].m;
             game.getBoard().pv[game.getBoard().ply].s = score;
 
             if (score >= beta){
@@ -102,7 +119,7 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
 
 void search(board::Game& game)
 {
-    int maxDepth = 4;
+    int maxDepth = 5;
     game.getBoard().ply = 0;
     game.clearPv(game);
     alphaBeta(-INT_MAX, INT_MAX, maxDepth, game);

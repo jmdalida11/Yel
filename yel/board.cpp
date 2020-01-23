@@ -21,6 +21,20 @@ void Game::init()
 		}
 	}
 	initHash();
+	initMvvLva();
+}
+
+void Game::initMvvLva() {
+	const int VictimScore[13] = { 0, 100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600 };
+
+	int Attacker;
+	int Victim;
+
+	for(Attacker = wP; Attacker <= bK; ++Attacker) {
+		for(Victim = wP; Victim <= bK; ++Victim) {
+			MvvLvaScores[Victim][Attacker] = VictimScore[Victim] + 6 - (VictimScore[Attacker] / 100);
+		}
+	}
 }
 
 void Game::printBoard()
@@ -214,7 +228,11 @@ void Game::genCastlingMove(Piece pieceIndex)
 					perms &= 11;
 
 				setCastlePerm(move, perms);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = 1000;
+				board.moves.push_back(moveV);
 			}
 		}
 		if (WQSC(board.castle) && board.side == WHITE)
@@ -235,7 +253,11 @@ void Game::genCastlingMove(Piece pieceIndex)
 					perms &= 11;
 
 				setCastlePerm(move, perms);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = 1000;
+				board.moves.push_back(moveV);
 			}
 		}
 		if (BKSC(board.castle) && board.side == BLACK)
@@ -256,7 +278,11 @@ void Game::genCastlingMove(Piece pieceIndex)
 					perms &= 14;
 
 				setCastlePerm(move, perms);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = 1000;
+				board.moves.push_back(moveV);
 			}
 		}
 		if (BQSC(board.castle) && board.side == BLACK)
@@ -277,7 +303,11 @@ void Game::genCastlingMove(Piece pieceIndex)
 					perms &= 14;
 
 				setCastlePerm(move, perms);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = 1000;
+				board.moves.push_back(moveV);
 			}
 		}
 	}
@@ -314,7 +344,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 				addPromoteBits(move, piece);
 				moveFromTo(move, sqr, (sqr + moves[0]));
 				addPieceBits(move, pieces[0]);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = 2000;
+				board.moves.push_back(moveV);
 			}
 		}
 
@@ -329,7 +363,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
 				setCapturePieceBits(move, board.position[(sqr + moves[2])]);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = MvvLvaScores[board.position[sqr]][board.position[(sqr + moves[2])]] + 3000;
+				board.moves.push_back(moveV);
 			}
 		}
 
@@ -344,7 +382,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 				addPieceBits(move, pieces[0]);
 				addCaptureBit(move);
 				setCapturePieceBits(move, board.position[(sqr + moves[3])]);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = MvvLvaScores[board.position[sqr]][board.position[(sqr + moves[3])]] + 3000;
+				board.moves.push_back(moveV);
 			}
 		}
 	}
@@ -357,7 +399,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 				Move move = moveFromTo(sqr, (sqr + moves[1]));
 				addPieceBits(move, pieces[0]);
 				setEnpassBits(move, (sqr + moves[0]));
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = 1000;
+				board.moves.push_back(moveV);
 			}
 		}
 
@@ -365,7 +411,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 		{
 			Move move = moveFromTo(sqr, (sqr + moves[0]));
 			addPieceBits(move, pieces[0]);
-			board.moves.push_back(move);
+
+			MoveVal moveV;
+			moveV.m = move;
+			moveV.s = 1000;
+			board.moves.push_back(moveV);
 		}
 
 		if (board.position[sqr + moves[2]] != EMPTY && board.position[sqr + moves[2]] != OFF_BOARD &&
@@ -376,7 +426,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 			addPieceBits(move, pieces[0]);
 			addCaptureBit(move);
 			setCapturePieceBits(move, board.position[(sqr + moves[2])]);
-			board.moves.push_back(move);
+
+			MoveVal moveV;
+			moveV.m = move;
+			moveV.s = MvvLvaScores[board.position[sqr]][board.position[(sqr + moves[2])]] + 1000;
+			board.moves.push_back(moveV);
 		}
 
 		if (board.position[sqr + moves[3]] != EMPTY && board.position[sqr + moves[3]] != OFF_BOARD &&
@@ -387,7 +441,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 			addPieceBits(move, pieces[0]);
 			addCaptureBit(move);
 			setCapturePieceBits(move, board.position[(sqr + moves[3])]);
-			board.moves.push_back(move);
+
+			MoveVal moveV;
+			moveV.m = move;
+			moveV.s = MvvLvaScores[board.position[sqr]][board.position[(sqr + moves[3])]] + 1000;
+			board.moves.push_back(moveV);
 		}
 
 		if (board.enPassant)
@@ -400,7 +458,11 @@ void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 				addCaptureBit(move);
 				setEnPassCapBits(move, board.enPassant - moves[0]);
 				setCapturePieceBits(move, board.position[board.enPassant - moves[0]]);
-				board.moves.push_back(move);
+
+				MoveVal moveV;
+				moveV.m = move;
+				moveV.s = MvvLvaScores[board.position[sqr]][board.enPassant - moves[0]] + 2000;
+				board.moves.push_back(moveV);
 			}
 		}
 	}
@@ -490,7 +552,15 @@ void Game::genPieceMove(Sqr from, Sqr to, Piece pieceIndex, bool isCapture)
 		}
 	}
 
-	board.moves.push_back(move);
+	MoveVal moveV;
+	moveV.m = move;
+
+	if (isCapture)
+		moveV.s =  MvvLvaScores[board.position[to]][board.position[from]] + 1000;
+	else
+		moveV.s = 1000;
+
+	board.moves.push_back(moveV);
 }
 
 bool Game::makeMove(Move move)

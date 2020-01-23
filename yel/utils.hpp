@@ -18,8 +18,9 @@ Move parseMove(std::string moveString, board::Game& game)
 	Sqr from = fRSqr(fromFile, fromRank);
 	Sqr to = fRSqr(toFile, toRank);
 
-	for (const auto& move : game.getBoard().moves)
+	for (const auto& moveV : game.getBoard().moves)
 	{
+		Move move = moveV.m;
 		if (moveString.length() == 5)
 		{
 			if (from == FROM(move) && to == TO(move) && PIECE(move) == game.getBoard().position[from])

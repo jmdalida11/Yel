@@ -39,7 +39,7 @@ namespace defs {
 struct MoveVal
 {
 	Move m;
-	int s;
+	int s = 0;
 };
 
 enum : Sqr
@@ -250,13 +250,14 @@ inline Piece promoteChar(char piece, int side)
 	return EMPTY;
 }
 
-inline void printMoves(const std::vector<Move>& moves)
+inline void printMoves(const std::vector<MoveVal>& moves)
 {
 	print("");
 	print("Generated Moves:");
 
-	for(const auto& move : moves)
+	for(const auto& moveV : moves)
 	{
+		Move move = moveV.m;
 		Move from = move & 0x7F;
 		Move to = (move >> 7) & 0x7F;
 
@@ -292,11 +293,12 @@ const static Sqr mailbox64[64]
 	91, 92, 93, 94, 95, 96, 97, 98
 };
 
-inline void printMoves(std::vector<Move>& moves)
+inline void printMoves(std::vector<MoveVal>& moves)
 {
 	print("Available Moves:");
-	for (Move move : moves)
+	for (MoveVal moveV : moves)
 	{
+		Move move = moveV.m;
 		std::string pieces = "**nbrq**nbrq*";
 		std::string p = "";
 		if (ISPROMOTION(move))
@@ -364,7 +366,6 @@ static inline void printPv(MoveVal* pv)
         if (ISPROMOTION(move))
             p += pieces[PROMOTE(move)];
         std::cout << sqrChar[mailbox[FROM(move)]] << sqrChar[mailbox[TO(move)]] << p << " ";
-        break;
     }
     print("");
 }

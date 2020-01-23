@@ -20,7 +20,7 @@ struct Board
 	int hply {0};
 	int hash {0};
 	std::vector<Move> moveHistory {};
-	std::vector<Move> moves {};
+	std::vector<defs::MoveVal> moves {};
 	std::vector<int> histHash {};
 	defs::MoveVal pv[32];
 };
@@ -30,6 +30,7 @@ class Game
 public:
 	Game() = default;
 	void init();
+	void initMvvLva();
 	void printBoard();
 	void generateMove(bool isCaptureOnly);
 	void genPawnMove(Sqr s, bool isCaptureOnly);
@@ -46,6 +47,7 @@ public:
 	Sqr startEnpassant = 0;
 private:
 	Board board;
+	int MvvLvaScores[13][13];
 };
 
 }
