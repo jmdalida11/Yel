@@ -356,7 +356,7 @@ static inline void setHash(int& hash, Sqr* position, uint8_t side, Sqr enPassant
 
 static inline void printPv(MoveVal* pv)
 {
-    for (int i=0; i<32; i++)
+    for (int i=0; i<6; i++)
     {
         Move move = pv[i].m;
         std::string pieces = "**nbrq**nbrq*";
@@ -364,6 +364,7 @@ static inline void printPv(MoveVal* pv)
         if (ISPROMOTION(move))
             p += pieces[PROMOTE(move)];
         std::cout << sqrChar[mailbox[FROM(move)]] << sqrChar[mailbox[TO(move)]] << p << " ";
+        break;
     }
     print("");
 }

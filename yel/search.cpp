@@ -5,9 +5,45 @@ using namespace defs;
 
 extern int evaluation(board::Game& game);
 
-int quiesce(int alpha,int beta)
+int quiesce(int alpha, int beta, board::Game& game)
 {
-    return 0;
+    if (game.getBoard().ply >= 32)
+        return evaluation(game);
+
+    int score = evaluation(game);
+
+    if (score >= beta)
+        return beta;
+    if (score > alpha)
+        alpha = score;
+
+    game.generateMove(true);
+
+    std::vector<Move> moves = game.getBoard().moves;
+    game.getBoard().moves.clear();
+
+    for (const auto move : moves)
+    {
+        if (!game.makeMove(move)){
+            continue;
+        }
+
+        score = -quiesce(-beta, -alpha, game);
+        game.takeback();
+
+        if (score > alpha){
+            alpha = score;
+
+            game.getBoard().pv[game.getBoard().ply].m = move;
+            game.getBoard().pv[game.getBoard().ply].s = score;
+
+            if (score >= beta){
+                return beta;
+            }
+        }
+    }
+
+    return alpha;
 }
 
 int alphaBeta(int alpha, int beta, int depth, board::Game& game)
@@ -16,7 +52,7 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
     bool noLegalMove = true;
 
     if (depth == 0)
-        return evaluation(game);
+        return quiesce(alpha, beta, game);
 
     if (game.getBoard().ply && game.repeat())
         return 0;
