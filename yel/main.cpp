@@ -13,7 +13,7 @@ int main()
 	game.init();
 	utils::loadFen(Startfen, game);
 	game.setPositionKey();
-	game.generateMove();
+	game.generateMove(false);
 
 	while (true)
 	{
@@ -52,7 +52,7 @@ int main()
 			}
 			utils::loadFen(fen, game);
 			game.setPositionKey();
-			game.generateMove();
+			game.generateMove(false);
 
 			continue;
 		}
@@ -65,7 +65,7 @@ int main()
 		{
 			game.takeback();
 			game.getBoard().moves.clear();
-			game.generateMove();
+			game.generateMove(false);
 			continue;
 		}
 		if (m == "go")
@@ -74,7 +74,7 @@ int main()
 			printPv(game.getBoard().pv);
 			game.makeMove(game.getBoard().pv[0].m);
 			game.getBoard().moves.clear();
-   			game.generateMove();
+   			game.generateMove(false);
 		}
 
 		const auto move = utils::parseMove(m, game);
@@ -83,7 +83,7 @@ int main()
 			if(game.makeMove(move))
 			{
 				game.getBoard().moves.clear();
-				game.generateMove();
+				game.generateMove(false);
 			}
 		}
 	}

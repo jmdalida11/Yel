@@ -31,15 +31,15 @@ public:
 	Game() = default;
 	void init();
 	void printBoard();
-	void generateMove();
-	void genPawnMove(Sqr s);
+	void generateMove(bool isCaptureOnly);
+	void genPawnMove(Sqr s, bool isCaptureOnly);
 	void genCastlingMove(Piece pieceIndex);
 	bool attacked(Sqr sqrAttacked, int side);
 	void genPieceMove(Sqr from, Sqr to, Piece piece, bool isCapture);
 	bool makeMove(Move move);
 	void takeback();
 	void setPositionKey();
-	int repeat();
+	bool repeat();
 	void clearPv(board::Game& game);
 	void assetBoard();
 	Board& getBoard() { return board; }

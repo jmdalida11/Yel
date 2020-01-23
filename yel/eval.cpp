@@ -9,13 +9,14 @@ using namespace defs;
 #define ROOK_SEMI_OPEN_FILE_BONUS   10
 #define ROOK_OPEN_FILE_BONUS        15
 #define ROOK_ON_SEVENTH_BONUS       20
+#define IS_ENDGAME_VAL              2300
 
-int pieceValue[13]
+const int pieceValue[13]
 {
     0, 100, 300, 300, 500, 900, 1000, 100, 300, 300, 500, 900, 1000
 };
 
-int flip[64]
+const int flip[64]
 {
     56,  57,  58,  59,  60,  61,  62,  63,
     48,  49,  50,  51,  52,  53,  54,  55,
@@ -27,52 +28,76 @@ int flip[64]
     0,   1,   2,   3,   4,   5,   6,   7
 };
 
-int pawnPlace[64]
+const int pawnPlace[64]
 {
-    0,   0,   0,   0,   0,   0,   0,   0,
-    5,  10,  15,  20,  20,  15,  10,   5,
-    4,   8,  12,  16,  16,  12,   8,   4,
-    3,   6,   9,  12,  12,   9,   6,   3,
-    2,   4,   6,   8,   8,   6,   4,   2,
-    1,   2,   3, -10, -10,   3,   2,   1,
-    0,   0,   0, -40, -40,   0,   0,   0,
-    0,   0,   0,   0,   0,   0,   0,   0
+    0,  0,  0,  0,  0,  0,  0,  0,
+    10, 10, 0, -30,-30,0,  10, 10,
+    5,  0,  0,  5,  5,  0,  0,  5,
+    0,  0,  10, 20, 20, 10, 0,  0,
+    5,  5,  5,  25, 25, 5,  5,  5,
+    10, 10, 10, 26, 26, 10, 10, 10,
+    20, 20, 20, 30, 30, 20, 20, 20,
+    0,  0,  0,  0,  0,  0,  0,  0
 };
 
-int knightPlace[64]
+const int knightPlace[64]
 {
-    -10, -10, -10, -10, -10, -10, -10, -10,
-    -10,   0,   0,   0,   0,   0,   0, -10,
-    -10,   0,   5,   5,   5,   5,   0, -10,
-    -10,   0,   5,  10,  10,   5,   0, -10,
-    -10,   0,   5,  10,  10,   5,   0, -10,
-    -10,   0,   5,   5,   5,   5,   0, -10,
-    -10,   0,   0,   0,   0,   0,   0, -10,
-    -10, -20, -10, -10, -10, -10, -20, -10
+    0,  -10,0,  0,  0,  0,  -10,0,
+    0,  0,  0,  5,  5,  0,  0,  0,
+    0,  0,  10, 10, 10, 10, 0,  0,
+    0,  0,  10, 20, 20, 10, 5,  0,
+    5,  10, 15, 20, 20, 15, 10, 5,
+    5,  10, 10, 20, 20, 10, 10, 5,
+    0,  0,  5,  10, 10, 5,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0
 };
 
-int bishopPlace[64]
+const int bishopPlace[64]
 {
-    -10, -10, -10, -10, -10, -10, -10, -10,
-    -10,   0,   0,   0,   0,   0,   0, -10,
-    -10,   0,   5,   5,   5,   5,   0, -10,
-    -10,   0,   5,  10,  10,   5,   0, -10,
-    -10,   0,   5,  10,  10,   5,   0, -10,
-    -10,   0,   5,   5,   5,   5,   0, -10,
-    -10,   0,   0,   0,   0,   0,   0, -10,
-    -10, -10, -20, -10, -10, -20, -10, -10
+    0,  0,  -10,0,  0, -10, 0,  0,
+    0,  0,  0,  10, 10, 0,  0,  0,
+    0,  0,  10, 15, 15, 10, 0,  0,
+    0,  10, 15, 20, 20, 15, 10, 0,
+    0,  10, 15, 20, 20, 15, 10, 0,
+    0,  0,  10, 15, 15, 10, 0,  0,
+    0,  0,  0,  10, 10, 0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0
 };
 
-int kingPlace[64]
+const int rookPlace[64]
 {
+    0,  0,  5,  10, 10, 5,  0,  0,
+    0,  0,  5,  10, 10, 5,  0,  0,
+    0,  0,  5,  10, 10, 5,  0,  0,
+    0,  0,  5,  10, 10, 5,  0,  0,
+    0,  0,  5,  10, 10, 5,  0,  0,
+    0,  0,  5,  10, 10, 5,  0,  0,
+    25, 25, 25, 25, 25, 25, 25, 25,
+    0,  0,  5,  10, 10, 5,  0,  0
+};
+
+const int kingPlaceOpening[64]
+{
+    0,  45,  40,  -5,   0,   -5,  40,  20,
+    -5, -5,  -5,  -5,  -5,  -5,  -5,   -5,
+    -5, -5,  -5,  -5,  -5,  -5,  -5,   -5,
     0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,
     0,   0,   0,   0,   0,   0,   0,   0,
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,  45,  40,  -5,   0,   -5,  40,  20
+};
+
+const int KingPlaceEndgame[64]
+{
+    -50,-10,0,  0,  0,  0,  -10,-50,
+    -10,0,  10, 10, 10, 10, 0,  -10,
+    0,  10, 15, 15, 15, 15, 10, 0,
+    0,  10, 15, 20, 20, 15, 10, 0,
+    0,  10, 15, 20, 20, 15, 10, 0,
+    0,  10, 15, 15, 15, 15, 10, 0,
+    -10,0,  10, 10, 10, 10, 0,  -10,
+    -50,-10,0,  0,  0,  0,  -10,-50
 };
 
 int evaluation(board::Game& game)
@@ -90,19 +115,26 @@ int evaluation(board::Game& game)
 
             if (pieceIndex == wP)
             {
-                whiteScore += pawnPlace[flip[piecePos]];
+                whiteScore += pawnPlace[piecePos];
             }
             else if (pieceIndex == wN)
             {
-                whiteScore += knightPlace[flip[piecePos]];
+                whiteScore += knightPlace[piecePos];
             }
             else if (pieceIndex == wB)
             {
-                whiteScore += bishopPlace[flip[piecePos]];
+                whiteScore += bishopPlace[piecePos];
+            }
+            else if (pieceIndex == wR)
+            {
+                whiteScore += rookPlace[piecePos];
             }
             else if (pieceIndex == wK)
             {
-                whiteScore += kingPlace[flip[piecePos]];
+                if (whiteScore <= IS_ENDGAME_VAL)
+                    whiteScore += KingPlaceEndgame[piecePos];
+                else
+                    whiteScore += kingPlaceOpening[piecePos];
             }
         }
     }
@@ -117,19 +149,26 @@ int evaluation(board::Game& game)
 
             if (pieceIndex == bP)
             {
-                blackScore += pawnPlace[piecePos];
+                blackScore += pawnPlace[flip[piecePos]];
             }
             else if (pieceIndex == bN)
             {
-                blackScore += knightPlace[piecePos];
+                blackScore += knightPlace[flip[piecePos]];
             }
             else if (pieceIndex == bB)
             {
-                blackScore += bishopPlace[piecePos];
+                blackScore += bishopPlace[flip[piecePos]];
+            }
+            else if (pieceIndex == bR)
+            {
+                blackScore += rookPlace[flip[piecePos]];
             }
             else if (pieceIndex == bK)
             {
-                blackScore += kingPlace[piecePos];
+                if (blackScore <= IS_ENDGAME_VAL)
+                    blackScore += KingPlaceEndgame[flip[piecePos]];
+                else
+                    blackScore += kingPlaceOpening[flip[piecePos]];
             }
         }
     }

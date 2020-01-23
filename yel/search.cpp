@@ -18,10 +18,10 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
     if (depth == 0)
         return evaluation(game);
 
-    if (game.repeat() && game.getBoard().ply)
+    if (game.getBoard().ply && game.repeat())
         return 0;
 
-    game.generateMove();
+    game.generateMove(false);
 
     std::vector<Move> moves = game.getBoard().moves;
     game.getBoard().moves.clear();

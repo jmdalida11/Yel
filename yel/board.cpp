@@ -126,7 +126,7 @@ bool Game::attacked(Sqr sqrAttacked, int side)
 	return false;
 }
 
-void Game::generateMove()
+void Game::generateMove(bool isCaptureOnly)
 {
 	Piece start;
 	Piece end;
@@ -145,13 +145,15 @@ void Game::generateMove()
 	for (Piece pieceIndex=start; pieceIndex<=end; ++pieceIndex)
 	{
 		std::vector<Sqr> pieceSqr = board.pieces[pieceIndex];
-		genCastlingMove(pieceIndex);
+
+		if (!isCaptureOnly)
+			genCastlingMove(pieceIndex);
 
 		for (const auto& sqr : pieceSqr)
 		{
 			if (isPawn[pieceIndex])
 			{
-				genPawnMove(sqr);
+				genPawnMove(sqr, isCaptureOnly);
 			}
 			else
 			{
@@ -178,7 +180,8 @@ void Game::generateMove()
 							break;
 						}
 
-						genPieceMove(sqr, s, pieceIndex, false);
+						if (!isCaptureOnly)
+							genPieceMove(sqr, s, pieceIndex, false);
 
 						if (!sliding[pieceIndex])
 							break;
@@ -280,7 +283,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 	}
 }
 
-void Game::genPawnMove(Sqr sqr)
+void Game::genPawnMove(Sqr sqr, bool isCaptureOnly)
 {
 	std::vector<Sqr> secondRank, seventhRank;
 	std::vector<int> moves;
@@ -303,7 +306,7 @@ void Game::genPawnMove(Sqr sqr)
 
 	if (sqr >= seventhRank[0] && sqr <= seventhRank[1])
 	{
-		if (board.position[sqr + moves[0]] == EMPTY)
+		if (board.position[sqr + moves[0]] == EMPTY && !isCaptureOnly)
 		{
 			for (Piece piece=pieces[1]; piece<=pieces[2]; ++piece)
 			{
@@ -349,7 +352,7 @@ void Game::genPawnMove(Sqr sqr)
 	{
 		if (sqr >= secondRank[0] && sqr <= secondRank[1])
 		{
-			if (board.position[sqr + moves[0]] == EMPTY && board.position[sqr + moves[1]] == EMPTY)
+			if (board.position[sqr + moves[0]] == EMPTY && board.position[sqr + moves[1]] == EMPTY && !isCaptureOnly)
 			{
 				Move move = moveFromTo(sqr, (sqr + moves[1]));
 				addPieceBits(move, pieces[0]);
@@ -358,7 +361,7 @@ void Game::genPawnMove(Sqr sqr)
 			}
 		}
 
-		if (board.position[sqr + moves[0]] == EMPTY)
+		if (board.position[sqr + moves[0]] == EMPTY && !isCaptureOnly)
 		{
 			Move move = moveFromTo(sqr, (sqr + moves[0]));
 			addPieceBits(move, pieces[0]);
@@ -822,10 +825,7 @@ void Game::takeback()
 	if (CASTLEPERM(move))
 	{
 		int perms = CASTLEPERM(move);
-		for (int i = 0; i < 4; i++)
-		{
-			perms ^= 1 << i;
-		}
+		perms = ~perms & 0xF;
 		board.castle |= perms;
 	}
 
@@ -853,16 +853,15 @@ void Game::setPositionKey()
 	board.histHash.push_back(board.hash);
 }
 
-int Game::repeat()
+bool Game::repeat()
 {
-	int count = 0;
 	for (int i=board.histHash.size()-board.fiftyMove-1; i<board.histHash.size()-1; ++i)
 	{
 		if (board.hash == board.histHash[i])
-			++count;
+			return true;
 	}
 
-	return count;
+	return false;
 }
 
 void Game::clearPv(board::Game& game)
