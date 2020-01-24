@@ -2,7 +2,7 @@
 
 extern void search(board::Game& game);
 
-int main()
+int main(int argc, char* args[])
 {
 	print("Starting Yel 1.0 Chess Engine!");
 	print("");
