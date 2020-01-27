@@ -9,8 +9,8 @@ public:
     void update();
     void render();
     void initTexture(SDL_Surface* tileSurface[]);
-    Piece* getPiece();
-    void setPiece(Piece* p);
+    GuiPiece* getPiece();
+    void setPiece(GuiPiece* p);
     SDL_Rect getPosition();
     int getSqr();
 private:
@@ -21,5 +21,5 @@ private:
     int file;
     int rank;
     int sqr;
-    Piece* piece = NULL;
+    GuiPiece* piece = NULL;
 };

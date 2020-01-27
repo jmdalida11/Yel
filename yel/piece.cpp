@@ -1,6 +1,6 @@
 #include "piece.hpp"
 
-Piece::Piece(int x, int y, int size, int s, int t, SDL_Renderer *ren)
+GuiPiece::GuiPiece(int x, int y, int size, int s, int t, SDL_Renderer *ren)
 {
     position.x = x;
     position.y = y;
@@ -11,21 +11,21 @@ Piece::Piece(int x, int y, int size, int s, int t, SDL_Renderer *ren)
     type = t;
 }
 
-void Piece::initTexture(SDL_Surface* tileSurface)
+void GuiPiece::initTexture(SDL_Surface* tileSurface)
 {
     texture = SDL_CreateTextureFromSurface(renderer, tileSurface);
 }
 
-void Piece::update()
+void GuiPiece::update()
 {
 }
 
-void Piece::render()
+void GuiPiece::render()
 {
     SDL_RenderCopy(renderer, texture, NULL, &position);
 }
 
-Piece::~Piece()
+GuiPiece::~GuiPiece()
 {
     SDL_DestroyTexture(texture);
 }

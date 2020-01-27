@@ -1,12 +1,16 @@
 #include "gui.hpp"
+#include "defs.hpp"
+
 #include <string>
 #include <SDL2/SDL_image.h>
 
 namespace gui {
 
+using namespace defs;
+
 constexpr int SCREEN_SIZE = 600;
 
-Gui::Gui()
+Gui::Gui(board::Game* g)
 {
     if( SDL_Init(SDL_INIT_VIDEO) < 0 )
     {
@@ -25,6 +29,8 @@ Gui::Gui()
             renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
         }
     }
+
+    game = g;
 
     SDL_Init(SDL_INIT_EVERYTHING);
     initSurface();
@@ -57,11 +63,11 @@ void Gui::initBoard()
     int tileSize = SCREEN_SIZE / 8;
     int x = 0;
     int y = 0;
-    int sqr = 98;
+    int sqr = 63;
 
     for (int i=0; i<64; i++)
     {
-        tiles.push_back(Tile(tileSize * x, tileSize * y, tileSize, x, 7-y, sqr--, isWhite, renderer));
+        tiles.push_back(Tile(tileSize * x, tileSize * y, tileSize, x, 7-y, mailbox64[sqr--], isWhite, renderer));
         ++x;
 
         if (x == 8)
@@ -85,12 +91,12 @@ void Gui::initPieces()
 {
     for (int i=0; i<64; i++)
     {
-        if (tiles[i].getSqr() >= 31 && tiles[i].getSqr() <= 38)
+        if (game->getBoard().position[mailbox64[i]] != EMPTY)
         {
-            tiles[i].setPiece(new Piece(tiles[i].getPosition().x, tiles[i].getPosition().y,
-                tiles[i].getPosition().w, tiles[i].getSqr(), 0, renderer));
+            tiles[i].setPiece(new GuiPiece(tiles[i].getPosition().x, tiles[i].getPosition().y,
+                tiles[i].getPosition().w, tiles[i].getSqr(), game->getBoard().position[mailbox64[i]], renderer));
 
-            tiles[i].getPiece()->initTexture(pieceSurface[0]);
+            tiles[i].getPiece()->initTexture(pieceSurface[game->getBoard().position[mailbox64[i]]-1]);
         }
     }
 }

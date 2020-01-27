@@ -31,12 +31,12 @@ SDL_Rect Tile::getPosition()
     return position;
 }
 
-Piece* Tile::getPiece()
+GuiPiece* Tile::getPiece()
 {
     return piece;
 }
 
-void Tile::setPiece(Piece* p)
+void Tile::setPiece(GuiPiece* p)
 {
     piece = p;
 }

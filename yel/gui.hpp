@@ -3,14 +3,15 @@
 #include <stdio.h>
 #include <vector>
 #include "tile.hpp"
-#include "Piece.hpp"
+#include "piece.hpp"
+#include "board.hpp"
 
 namespace gui {
 
 class Gui
 {
 public:
-    Gui();
+    Gui(board::Game* g);
     ~Gui();
     void init();
     void run();
@@ -25,6 +26,7 @@ private:
     std::vector<Tile> tiles {};
     SDL_Surface* tileSurface[2];
     SDL_Surface* pieceSurface[12];
+    board::Game* game = NULL;
 };
 
 }

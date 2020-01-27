@@ -1,5 +1,3 @@
-CC = g++
-
 INCLUDE_PATHS = -IC:\MinGW\include
 LIBRARY_PATHS = -LC:\MinGW\lib
 
@@ -10,5 +8,5 @@ OBJ_NAME = Yel
 OBJS = main.cpp board.cpp eval.cpp search.cpp gui.cpp tile.cpp piece.cpp
 
 make:
-	$(CC) $(OBJS) -o $(OBJ_NAME) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS)
-	#mingw32-make make
+	g++ $(OBJS) -o $(OBJ_NAME) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(COMPILER_FLAGS) $(LINKER_FLAGS)
+#mingw32-make make

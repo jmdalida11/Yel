@@ -1,11 +1,11 @@
 #pragma once
 #include <SDL2/SDL.h>
 
-class Piece
+class GuiPiece
 {
 public:
-    Piece(int x, int y, int size, int s, int t, SDL_Renderer *ren);
-    ~Piece();
+    GuiPiece(int x, int y, int size, int s, int t, SDL_Renderer *ren);
+    ~GuiPiece();
     void update();
     void render();
     void initTexture(SDL_Surface* tileSurface);
