@@ -237,7 +237,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 		}
 		if (WQSC(board.castle) && board.side == WHITE)
 		{
-			if (board.position[d1] == EMPTY && board.position[c1] == EMPTY
+			if (board.position[d1] == EMPTY && board.position[c1] == EMPTY && board.position[b1] == EMPTY
 				&& board.position[e1] == wK && board.position[a1] == wR)
 			{
 				Move move = 0;
@@ -287,7 +287,7 @@ void Game::genCastlingMove(Piece pieceIndex)
 		}
 		if (BQSC(board.castle) && board.side == BLACK)
 		{
-			if (board.position[d8] == EMPTY && board.position[c8] == EMPTY
+			if (board.position[d8] == EMPTY && board.position[c8] == EMPTY && board.position[b8] == EMPTY
 				&& board.position[e8] == bK && board.position[a8] == bR)
 			{
 				Move move = 0;
