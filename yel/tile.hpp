@@ -13,6 +13,7 @@ public:
     void setPiece(GuiPiece* p);
     SDL_Rect getPosition();
     int getSqr();
+    void destroyPiece();
 private:
     SDL_Rect position {};
     SDL_Texture* texture = NULL;

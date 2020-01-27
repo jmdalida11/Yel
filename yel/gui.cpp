@@ -1,7 +1,6 @@
 #include "gui.hpp"
 #include "defs.hpp"
 
-#include <string>
 #include <SDL2/SDL_image.h>
 
 namespace gui {
@@ -59,26 +58,21 @@ void Gui::initSurface()
 
 void Gui::initBoard()
 {
-    bool isWhite = true;
+    bool isWhite = false;
     int tileSize = SCREEN_SIZE / 8;
     int x = 0;
     int y = 0;
-    int sqr = 63;
 
-    for (int i=0; i<64; i++)
+    for(Sqr rank=RANK_8; rank>=RANK_1; --rank)
     {
-        tiles.push_back(Tile(tileSize * x, tileSize * y, tileSize, x, 7-y, mailbox64[sqr--], isWhite, renderer));
-        ++x;
+        for(Sqr file=FILE_A; file<=FILE_H; ++file)
+        {
+            auto sqr = fRSqr(file, rank);
 
-        if (x == 8)
-        {
-            ++y;
-            x = 0;
-        }
-        else
-        {
+            tiles.push_back(Tile(tileSize * file, tileSize * rank, tileSize, file, rank, sqr, isWhite, renderer));
             isWhite = !isWhite;
         }
+        isWhite = !isWhite;
     }
 
     for (int i=0; i<tiles.size(); i++)
@@ -164,6 +158,11 @@ void Gui::render()
 
 Gui::~Gui()
 {
+    for (int i=0; i<64; i++)
+    {
+        tiles[i].destroyPiece();
+    }
+
     for (int i=0; i<2; i++)
     {
         SDL_FreeSurface(tileSurface[i]);

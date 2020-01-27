@@ -51,6 +51,15 @@ void Tile::render()
     SDL_RenderCopy(renderer, texture, NULL, &position);
 }
 
+void Tile::destroyPiece()
+{
+    if (piece != NULL)
+    {
+        delete piece;
+        piece = NULL;
+    }
+}
+
 Tile::~Tile()
 {
     SDL_DestroyTexture(texture);
