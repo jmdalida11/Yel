@@ -55,9 +55,8 @@ Move parseMove(Move m, board::Game& game)
 	for (const auto& moveV : game.getBoard().moves)
 	{
 		Move move = moveV.m;
-		if (FROM(m) == FROM(move) && TO(m) == TO(move) && PIECE(move) == game.getBoard().position[FROM(m)])
+		if (PROMOTE(m) == PROMOTE(move) && FROM(m) == FROM(move) && TO(m) == TO(move) && PIECE(move) == game.getBoard().position[FROM(m)])
 		{
-			if (PROMOTE(move)) break;
 			return move;
 		}
 	}

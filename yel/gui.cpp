@@ -31,7 +31,8 @@ Gui::Gui()
         }
     }
 
-    const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    //const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const std::string Startfen = "4k3/P7/8/8/8/8/7p/4K3 w - - 0 1";
 
     game.init();
     utils::loadFen(Startfen, game);
@@ -135,6 +136,27 @@ void Gui::run()
                 {
                     case SDL_BUTTON_LEFT:
                     {
+                        if (promoting)
+                        {
+                            int mouseX = e.button.x;
+                            int mouseY = e.button.y;
+                            SDL_Rect mousePos {mouseX, mouseY, 1, 1};
+
+                            for (int i=0; i<4; i++)
+                            {
+                               if (!(
+                                    ( ( mousePos.y + mousePos.h ) < ( promoteToPieces[i].y ) ) ||
+                                    ( mousePos.y > ( promoteToPieces[i].y + promoteToPieces[i].h ) ) ||
+                                    ( ( mousePos.x + mousePos.w ) < promoteToPieces[i].x ) ||
+                                    ( mousePos.x > ( promoteToPieces[i].x + promoteToPieces[i].w ) )
+                                ))
+                                {
+                                    promotePieceIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+
                         if (game.getBoard().side != AI)
                         {
                             for (int i=0; i<64; i++)
@@ -171,7 +193,46 @@ void Gui::run()
             }
             else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
             {
-                if (pieceMovingInfo.pieceMoving != NULL)
+                if (promotePieceIndex != -1)
+                {
+                    Move move = 0;
+                    moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
+
+                    Piece p;
+                    if (game.getBoard().side == WHITE)
+                    {
+                        p = wQ;
+                    }
+                    else
+                    {
+                        p = bQ;
+                    }
+
+                    addPromoteBits(move, p - promotePieceIndex);
+
+                    move = utils::parseMove(move, game);
+
+                    if (move != 0 && game.makeMove(move))
+                    {
+                        tiles[mailbox[pieceMovingInfo.to]].setPiece(tiles[mailbox[pieceMovingInfo.from]].getPiece());
+                        tiles[mailbox[pieceMovingInfo.from]].setPiece(NULL);
+                        tiles[mailbox[pieceMovingInfo.to]].alignPiece();
+
+                        tiles[mailbox[pieceMovingInfo.to]].promote(PROMOTE(move), pieceSurface[(PROMOTE(move))-1]);
+                    }
+
+                    pieceMovingInfo.pieceMoving = NULL;
+                    pieceMovingInfo.tile = NULL;
+                    pieceMovingInfo.from = -1;
+                    pieceMovingInfo.to = -1;
+                    promoting = false;
+                    promotePieceIndex = -1;
+
+                    game.getBoard().moves.clear();
+                    game.generateMove(false);
+                }
+
+                else if (pieceMovingInfo.pieceMoving != NULL)
                 {
                     for (int i=0; i<64; i++)
                     {
@@ -225,11 +286,12 @@ void Gui::run()
                                 else
                                 {
                                     pieceMovingInfo.tile->alignPiece();
-                                    pieceMovingInfo.pieceMoving = NULL;
-                                    pieceMovingInfo.tile = NULL;
-                                    pieceMovingInfo.from = -1;
-                                    pieceMovingInfo.to = -1;
                                 }
+
+                                pieceMovingInfo.pieceMoving = NULL;
+                                pieceMovingInfo.tile = NULL;
+                                pieceMovingInfo.from = -1;
+                                pieceMovingInfo.to = -1;
                             }
                             break;
                         }
@@ -240,7 +302,7 @@ void Gui::run()
 
         if (!promoting)
         {
-            moveAI();
+           moveAI();
         }
 
         update();
@@ -397,8 +459,8 @@ void Gui::render()
                 pTexture = SDL_CreateTextureFromSurface(renderer, pieceSurface[bQ-1-i]);
             }
 
-            SDL_RenderCopy(renderer, pTexture, NULL, &promoteToPieces[i]);
             SDL_RenderCopy(renderer, promoteTexture, NULL, &promoteToPieces[i]);
+            SDL_RenderCopy(renderer, pTexture, NULL, &promoteToPieces[i]);
         }
     }
 
