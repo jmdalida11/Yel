@@ -250,63 +250,54 @@ bool Gui::castleMove(Move move)
 {
     if (CASTBITS(move))
     {
-        if (game.getBoard().side == WHITE)
+        uint8_t dir = CASTBITS(move);
+        if (WKSC(dir))
         {
-            uint8_t dir = CASTBITS(move);
+            tiles[mailbox[g1]].setPiece(tiles[mailbox[e1]].getPiece());
+            tiles[mailbox[g1]].alignPiece();
+            tiles[mailbox[e1]].setPiece(NULL);
 
-            if (WKSC(dir))
-            {
-                tiles[mailbox[g1]].setPiece(tiles[mailbox[e1]].getPiece());
-                tiles[mailbox[g1]].alignPiece();
-                tiles[mailbox[e1]].setPiece(NULL);
+            tiles[mailbox[f1]].setPiece(tiles[mailbox[h1]].getPiece());
+            tiles[mailbox[f1]].alignPiece();
+            tiles[mailbox[h1]].setPiece(NULL);
 
-                tiles[mailbox[f1]].setPiece(tiles[mailbox[h1]].getPiece());
-                tiles[mailbox[f1]].alignPiece();
-                tiles[mailbox[h1]].setPiece(NULL);
-
-                return true;
-            }
-            else if (WQSC(dir))
-            {
-                tiles[mailbox[c1]].setPiece(tiles[mailbox[e1]].getPiece());
-                tiles[mailbox[c1]].alignPiece();
-                tiles[mailbox[e1]].setPiece(NULL);
-
-                tiles[mailbox[d1]].setPiece(tiles[mailbox[a1]].getPiece());
-                tiles[mailbox[d1]].alignPiece();
-                tiles[mailbox[a1]].setPiece(NULL);
-
-                return true;
-            }
+            return true;
         }
-        else if (game.getBoard().side == BLACK)
+        else if (WQSC(dir))
         {
-            uint8_t dir = CASTBITS(move);
+            tiles[mailbox[c1]].setPiece(tiles[mailbox[e1]].getPiece());
+            tiles[mailbox[c1]].alignPiece();
+            tiles[mailbox[e1]].setPiece(NULL);
 
-            if (BKSC(dir))
-            {
-                tiles[mailbox[g8]].setPiece(tiles[mailbox[e8]].getPiece());
-                tiles[mailbox[g8]].alignPiece();
-                tiles[mailbox[e8]].setPiece(NULL);
+            tiles[mailbox[d1]].setPiece(tiles[mailbox[a1]].getPiece());
+            tiles[mailbox[d1]].alignPiece();
+            tiles[mailbox[a1]].setPiece(NULL);
 
-                tiles[mailbox[f8]].setPiece(tiles[mailbox[h8]].getPiece());
-                tiles[mailbox[f8]].alignPiece();
-                tiles[mailbox[h8]].setPiece(NULL);
+            return true;
+        }
+        else if (BKSC(dir))
+        {
+            tiles[mailbox[g8]].setPiece(tiles[mailbox[e8]].getPiece());
+            tiles[mailbox[g8]].alignPiece();
+            tiles[mailbox[e8]].setPiece(NULL);
 
-                return true;
-            }
-            else if (BQSC(dir))
-            {
-                tiles[mailbox[c8]].setPiece(tiles[mailbox[e8]].getPiece());
-                tiles[mailbox[c8]].alignPiece();
-                tiles[mailbox[e8]].setPiece(NULL);
+            tiles[mailbox[f8]].setPiece(tiles[mailbox[h8]].getPiece());
+            tiles[mailbox[f8]].alignPiece();
+            tiles[mailbox[h8]].setPiece(NULL);
 
-                tiles[mailbox[d8]].setPiece(tiles[mailbox[a8]].getPiece());
-                tiles[mailbox[d8]].alignPiece();
-                tiles[mailbox[a8]].setPiece(NULL);
+            return true;
+        }
+        else if (BQSC(dir))
+        {
+            tiles[mailbox[c8]].setPiece(tiles[mailbox[e8]].getPiece());
+            tiles[mailbox[c8]].alignPiece();
+            tiles[mailbox[e8]].setPiece(NULL);
 
-                return true;
-            }
+            tiles[mailbox[d8]].setPiece(tiles[mailbox[a8]].getPiece());
+            tiles[mailbox[d8]].alignPiece();
+            tiles[mailbox[a8]].setPiece(NULL);
+
+            return true;
         }
     }
 
