@@ -14,6 +14,7 @@ public:
     SDL_Rect getPosition();
     int getSqr();
     void destroyPiece();
+    bool isCollide(const SDL_Rect& mouse);
 private:
     SDL_Rect position {};
     SDL_Texture* texture = NULL;

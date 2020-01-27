@@ -27,6 +27,7 @@ private:
     SDL_Surface* tileSurface[2];
     SDL_Surface* pieceSurface[12];
     board::Game* game = NULL;
+    GuiPiece* movingPiece = NULL;
 };
 
 }

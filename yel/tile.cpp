@@ -23,7 +23,20 @@ void Tile::initTexture(SDL_Surface* tileSurface[])
 
 void Tile::update()
 {
+    if (piece != NULL)
+    {
+        piece->update();
+    }
+}
 
+bool Tile::isCollide(const SDL_Rect& mouse)
+{
+    return !(
+        ( ( mouse.y + mouse.h ) < ( position.y ) ) ||
+        ( mouse.y > ( position.y + position.h ) ) ||
+        ( ( mouse.x + mouse.w ) < position.x ) ||
+        ( mouse.x > ( position.x + position.w ) )
+    );
 }
 
 SDL_Rect Tile::getPosition()

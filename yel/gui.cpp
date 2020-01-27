@@ -60,8 +60,6 @@ void Gui::initBoard()
 {
     bool isWhite = false;
     int tileSize = SCREEN_SIZE / 8;
-    int x = 0;
-    int y = 0;
 
     for(Sqr rank=RANK_8; rank>=RANK_1; --rank)
     {
@@ -99,6 +97,7 @@ void Gui::run()
 {
     bool running = true;
     SDL_Event e;
+
     while (running)
     {
         if (SDL_PollEvent(&e))
@@ -117,6 +116,57 @@ void Gui::run()
                     }
                     default:
                     {
+                        break;
+                    }
+                }
+            }
+            else if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                switch (e.button.button)
+                {
+                    case SDL_BUTTON_LEFT:
+                    {
+                        for (int i=0; i<64; i++)
+                        {
+                            int mouseX = e.button.x;
+                            int mouseY = e.button.y;
+                            SDL_Rect mousePos {mouseX, mouseY, 1, 1};
+
+                            if (tiles[i].getPiece() != NULL && tiles[i].isCollide(mousePos))
+                            {
+                                movingPiece = tiles[i].getPiece();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (e.type == SDL_MOUSEMOTION)
+            {
+                if (movingPiece != NULL)
+                {
+                    int tileSize = SCREEN_SIZE / 8;
+                    int mouseX = e.button.x;
+                    int mouseY = e.button.y;
+                    movingPiece->position.x = mouseX - tileSize/ 2;
+                    movingPiece->position.y = mouseY - tileSize / 2;
+                }
+            }
+            else if (e.type == SDL_MOUSEBUTTONUP)
+            {
+                for (int i=0; i<64; i++)
+                {
+                    int mouseX = e.button.x;
+                    int mouseY = e.button.y;
+                    SDL_Rect mousePos {mouseX, mouseY, 1, 1};
+
+                    if (tiles[i].isCollide(mousePos))
+                    {
+                        movingPiece->position.x = tiles[i].getPosition().x;
+                        movingPiece->position.y = tiles[i].getPosition().y;
+                        tiles[i].setPiece(movingPiece);
+                        movingPiece = NULL;
+
                         break;
                     }
                 }
@@ -151,6 +201,11 @@ void Gui::render()
     {
         if (tiles[i].getPiece() != NULL)
             tiles[i].getPiece()->render();
+    }
+
+    if (movingPiece != NULL)
+    {
+        movingPiece->render();
     }
 
     SDL_RenderPresent(renderer);
