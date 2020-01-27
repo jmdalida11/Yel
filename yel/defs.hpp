@@ -106,6 +106,15 @@ const static std::vector<Sqr> pieceMovesArray[]
 	{}
 };
 
+inline bool isPromotionSqr(Sqr s)
+{
+	if (s >= a1 && s <= h1)
+		return true;
+	if (s >= a8 && s <= h8)
+		return true;
+	return false;
+}
+
 inline const std::vector<Sqr>& pieceMoves(const Piece& piece)
 {
 	switch(piece)

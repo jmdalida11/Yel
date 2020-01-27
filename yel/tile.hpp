@@ -16,6 +16,7 @@ public:
     void destroyPiece();
     bool isCollide(const SDL_Rect& mouse);
     void alignPiece();
+    void promote(Piece p, SDL_Surface* pieceSurface);
 private:
     SDL_Rect position {};
     SDL_Texture* texture = NULL;

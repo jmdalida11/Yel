@@ -30,6 +30,7 @@ public:
     void initSurface();
     void initPieces();
     bool castleMove(Move move);
+    void moveAI();
 private:
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
@@ -39,6 +40,11 @@ private:
     PieceMoving pieceMovingInfo {};
     Sqr AI = defs::BLACK;
     board::Game game {};
+    bool promoting = false;
+    SDL_Rect promoteToPieces[4];
+    SDL_Surface* promoteSqrSurface = NULL;
+    SDL_Texture* promoteTexture = NULL;
+    int promotePieceIndex = -1;
 };
 
 }

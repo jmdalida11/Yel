@@ -61,6 +61,9 @@ void Gui::initSurface()
     pieceSurface[9] = IMG_Load("imgs/bR.png");
     pieceSurface[10] = IMG_Load("imgs/bQ.png");
     pieceSurface[11] = IMG_Load("imgs/bK.png");
+
+    promoteSqrSurface = IMG_Load("imgs/promoteSqr.png");
+    promoteTexture = SDL_CreateTextureFromSurface(renderer, promoteSqrSurface);
 }
 
 void Gui::initBoard()
@@ -157,7 +160,7 @@ void Gui::run()
             }
             else if (e.type == SDL_MOUSEMOTION)
             {
-                if (pieceMovingInfo.pieceMoving != NULL)
+                if (pieceMovingInfo.pieceMoving != NULL && !promoting)
                 {
                     int tileSize = SCREEN_SIZE / 8;
                     int mouseX = e.button.x;
@@ -180,37 +183,54 @@ void Gui::run()
                         {
                             pieceMovingInfo.to = mailbox64[i];
 
-                            Move move = 0;
-                            moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
-
-                            move = utils::parseMove(move, game);
-
-                            if (move != 0 && game.makeMove(move))
+                            if (isPawn[pieceMovingInfo.pieceMoving->type] && isPromotionSqr(pieceMovingInfo.to))
                             {
-                                if (ISCAP(move))
-                                    delete tiles[i].getPiece();
-
-                                if (!castleMove(move))
-                                {
-                                    tiles[i].setPiece(pieceMovingInfo.pieceMoving);
-                                    tiles[i].alignPiece();
-                                    pieceMovingInfo.pieceMoving = NULL;
-                                    pieceMovingInfo.tile->setPiece(NULL);
-                                }
-
-                                render();
-                                game.getBoard().moves.clear();
-                                game.generateMove(false);
+                                promoting = true;
                             }
                             else
                             {
-                                pieceMovingInfo.tile->alignPiece();
-                                pieceMovingInfo.pieceMoving = NULL;
-                                pieceMovingInfo.tile = NULL;
-                                pieceMovingInfo.from = -1;
-                                pieceMovingInfo.to = -1;
-                            }
+                                Move move = 0;
+                                moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
 
+                                move = utils::parseMove(move, game);
+
+                                if (move != 0 && game.makeMove(move))
+                                {
+                                    if (ISCAP(move))
+                                    {
+                                        if (ENPASSCAP(move))
+                                        {
+                                            delete tiles[mailbox[ENPASSCAP(move)]].getPiece();
+                                            tiles[mailbox[ENPASSCAP(move)]].setPiece(NULL);
+                                        }
+                                        else
+                                        {
+                                            delete tiles[i].getPiece();
+                                            tiles[i].setPiece(NULL);
+                                        }
+                                    }
+
+                                    if (!castleMove(move))
+                                    {
+                                        tiles[i].setPiece(pieceMovingInfo.pieceMoving);
+                                        tiles[i].alignPiece();
+                                        pieceMovingInfo.pieceMoving = NULL;
+                                        pieceMovingInfo.tile->setPiece(NULL);
+                                    }
+
+                                    render();
+                                    game.getBoard().moves.clear();
+                                    game.generateMove(false);
+                                }
+                                else
+                                {
+                                    pieceMovingInfo.tile->alignPiece();
+                                    pieceMovingInfo.pieceMoving = NULL;
+                                    pieceMovingInfo.tile = NULL;
+                                    pieceMovingInfo.from = -1;
+                                    pieceMovingInfo.to = -1;
+                                }
+                            }
                             break;
                         }
                     }
@@ -218,31 +238,53 @@ void Gui::run()
             }
         }
 
-        if (game.getBoard().side == AI)
+        if (!promoting)
         {
-            search(game);
-            Move AImove = game.getBoard().pv[0].m;
-
-            game.makeMove(AImove);
-
-            if (ISCAP(AImove))
-                delete tiles[mailbox[TO(AImove)]].getPiece();
-
-            if (!castleMove(AImove))
-            {
-                tiles[mailbox[TO(AImove)]].setPiece(tiles[mailbox[FROM(AImove)]].getPiece());
-                tiles[mailbox[FROM(AImove)]].setPiece(NULL);
-                tiles[mailbox[TO(AImove)]].alignPiece();
-            }
-
-            game.getBoard().moves.clear();
-            game.generateMove(false);
+            moveAI();
         }
 
         update();
         render();
 
         SDL_Delay(10);
+    }
+}
+
+void Gui::moveAI()
+{
+if (game.getBoard().side == AI)
+    {
+        search(game);
+        Move AImove = game.getBoard().pv[0].m;
+
+        game.makeMove(AImove);
+
+        if (ISCAP(AImove))
+        {
+            if (ENPASSCAP(AImove))
+            {
+                delete tiles[mailbox[ENPASSCAP(AImove)]].getPiece();
+            }
+            else
+            {
+                delete tiles[mailbox[TO(AImove)]].getPiece();
+            }
+        }
+
+        if (!castleMove(AImove))
+        {
+            tiles[mailbox[TO(AImove)]].setPiece(tiles[mailbox[FROM(AImove)]].getPiece());
+            tiles[mailbox[FROM(AImove)]].setPiece(NULL);
+            tiles[mailbox[TO(AImove)]].alignPiece();
+
+            if (PROMOTE(AImove))
+            {
+                tiles[mailbox[TO(AImove)]].promote(PROMOTE(AImove), pieceSurface[(PROMOTE(AImove))-1]);
+            }
+        }
+
+        game.getBoard().moves.clear();
+        game.generateMove(false);
     }
 }
 
@@ -330,6 +372,34 @@ void Gui::render()
     if (pieceMovingInfo.pieceMoving != NULL)
     {
         pieceMovingInfo.pieceMoving->render();
+    }
+
+    if (promoting)
+    {
+        const int size = SCREEN_SIZE / 8;
+
+        for (int i=0; i<4; i++)
+        {
+            promoteToPieces[i].w = size;
+            promoteToPieces[i].h = size;
+            promoteToPieces[i].x = SCREEN_SIZE / 2 - size * (2 - i);
+            promoteToPieces[i].y = SCREEN_SIZE / 2 - promoteToPieces[i].h / 2;
+
+            SDL_Texture* pTexture = NULL;
+
+            if (game.getBoard().side == WHITE)
+            {
+                pTexture = SDL_CreateTextureFromSurface(renderer, pieceSurface[wQ-1-i]);
+
+            }
+            else if (game.getBoard().side == BLACK)
+            {
+                pTexture = SDL_CreateTextureFromSurface(renderer, pieceSurface[bQ-1-i]);
+            }
+
+            SDL_RenderCopy(renderer, pTexture, NULL, &promoteToPieces[i]);
+            SDL_RenderCopy(renderer, promoteTexture, NULL, &promoteToPieces[i]);
+        }
     }
 
     SDL_RenderPresent(renderer);

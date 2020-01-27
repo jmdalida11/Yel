@@ -65,6 +65,13 @@ int Tile::getSqr()
     return sqr;
 }
 
+void Tile::promote(Piece p, SDL_Surface* pieceSurface)
+{
+    piece->type = p;
+    SDL_DestroyTexture(piece->texture);
+    piece->texture = SDL_CreateTextureFromSurface(renderer, pieceSurface);
+}
+
 void Tile::render()
 {
     SDL_RenderCopy(renderer, texture, NULL, &position);
