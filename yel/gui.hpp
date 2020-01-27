@@ -31,6 +31,7 @@ public:
     void initPieces();
     bool castleMove(Move move);
     void moveAI();
+    void clearPieces();
 private:
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;

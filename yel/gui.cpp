@@ -31,8 +31,7 @@ Gui::Gui()
         }
     }
 
-    //const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    const std::string Startfen = "4k3/P7/8/8/8/8/7p/4K3 w - - 0 1";
+    const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     game.init();
     utils::loadFen(Startfen, game);
@@ -120,12 +119,22 @@ void Gui::run()
             {
                 switch(e.key.keysym.sym)
                 {
-                    case SDLK_s:
+                    case SDLK_n:
                     {
-                        break;
-                    }
-                    case SDLK_b:
-                    {
+                        clearPieces();
+                        for(int i=wP; i<=bK; i++)
+                        {
+                            game.getBoard().pieces[i].clear();
+                        }
+                        game.init();
+                        game.getBoard().histHash.clear();
+                        game.getBoard().moves.clear();
+
+                        const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+                        utils::loadFen(Startfen, game);
+                        game.setPositionKey();
+                        game.generateMove(false);
+                        initPieces();
                         break;
                     }
                 }
@@ -302,7 +311,7 @@ void Gui::run()
 
         if (!promoting)
         {
-           moveAI();
+            moveAI();
         }
 
         update();
@@ -314,9 +323,12 @@ void Gui::run()
 
 void Gui::moveAI()
 {
-if (game.getBoard().side == AI)
+    if (game.getBoard().side == AI)
     {
         search(game);
+
+        if (game.getBoard().pv[0].m == 0) return;
+
         Move AImove = game.getBoard().pv[0].m;
 
         game.makeMove(AImove);
@@ -467,13 +479,16 @@ void Gui::render()
     SDL_RenderPresent(renderer);
 }
 
-Gui::~Gui()
+void Gui::clearPieces()
 {
     for (int i=0; i<64; i++)
     {
         tiles[i].destroyPiece();
     }
+}
 
+Gui::~Gui()
+{
     for (int i=0; i<2; i++)
     {
         SDL_FreeSurface(tileSurface[i]);
