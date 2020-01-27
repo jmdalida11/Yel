@@ -1,14 +1,26 @@
-#include "utils.hpp"
-#include "gui.hpp"
-
 #define GUI
 
+#ifdef GUI
+#include "gui.hpp"
+#else
+#include "utils.hpp"
+#endif
+
+#ifndef GUI
 extern void search(board::Game& game);
 
-void consoleInterface(board::Game& game)
+void consoleInterface()
 {
 	print("Starting Yel 1.0 Chess Engine!");
 	print("");
+
+	const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+	board::Game game;
+	game.init();
+	utils::loadFen(Startfen, game);
+	game.setPositionKey();
+	game.generateMove(false);
 
 	while (true)
 	{
@@ -83,21 +95,14 @@ void consoleInterface(board::Game& game)
 		}
 	}
 }
+#endif
 
 int main(int argc, char* args[])
 {
-	const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-	board::Game game;
-	game.init();
-	utils::loadFen(Startfen, game);
-	game.setPositionKey();
-	game.generateMove(false);
-
 	#ifdef GUI
-		gui::Gui gui(&game);
+		gui::Gui gui;
     	gui.run();
 	#else
-		consoleInterface(game);
+		consoleInterface();
 	#endif
 }

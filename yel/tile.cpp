@@ -39,6 +39,12 @@ bool Tile::isCollide(const SDL_Rect& mouse)
     );
 }
 
+void Tile::alignPiece()
+{
+    piece->position.x = position.x;
+    piece->position.y = position.y;
+}
+
 SDL_Rect Tile::getPosition()
 {
     return position;

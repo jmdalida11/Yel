@@ -50,6 +50,21 @@ Move parseMove(std::string moveString, board::Game& game)
 	return 0;
 }
 
+Move parseMove(Move m, board::Game& game)
+{
+	for (const auto& moveV : game.getBoard().moves)
+	{
+		Move move = moveV.m;
+		if (FROM(m) == FROM(move) && TO(m) == TO(move) && PIECE(move) == game.getBoard().position[FROM(m)])
+		{
+			if (PROMOTE(move)) break;
+			return move;
+		}
+	}
+
+	return 0;
+}
+
 void loadFen(std::string fen, board::Game& game)
 {
 	std::map<char, Piece> pieceMap =

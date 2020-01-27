@@ -42,7 +42,7 @@ struct MoveVal
 	int s = 0;
 };
 
-enum : Sqr
+enum : uint8_t
 {
 	WHITE, BLACK, BOTH
 };
@@ -91,7 +91,7 @@ enum : Sqr
 	oB = OFF_BOARD
 };
 
-const static Sqr pieceColor[]
+const static uint8_t pieceColor[]
 {
 	BOTH, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
 	BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BOTH

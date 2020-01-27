@@ -5,13 +5,22 @@
 #include "tile.hpp"
 #include "piece.hpp"
 #include "board.hpp"
+#include "defs.hpp"
 
 namespace gui {
+
+struct PieceMoving
+{
+    GuiPiece* pieceMoving = NULL;
+    Tile* tile = NULL;
+    int from = -1;
+    int to = -1;
+};
 
 class Gui
 {
 public:
-    Gui(board::Game* g);
+    Gui();
     ~Gui();
     void init();
     void run();
@@ -20,14 +29,16 @@ public:
     void initBoard();
     void initSurface();
     void initPieces();
+    bool castleMove(Move move);
 private:
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     std::vector<Tile> tiles {};
     SDL_Surface* tileSurface[2];
     SDL_Surface* pieceSurface[12];
-    board::Game* game = NULL;
-    GuiPiece* movingPiece = NULL;
+    PieceMoving pieceMovingInfo {};
+    Sqr AI = defs::BLACK;
+    board::Game game {};
 };
 
 }

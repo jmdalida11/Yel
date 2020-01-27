@@ -1,6 +1,6 @@
 #include "piece.hpp"
 
-GuiPiece::GuiPiece(int x, int y, int size, int s, int t, SDL_Renderer *ren)
+GuiPiece::GuiPiece(int x, int y, int size, int s, Sqr t, SDL_Renderer *ren)
 {
     position.x = x;
     position.y = y;
