@@ -1,6 +1,7 @@
 #include "gui.hpp"
 
 #include <SDL2/SDL_image.h>
+#include <algorithm>
 #include "utils.hpp"
 
 extern void search(board::Game& game);
@@ -136,6 +137,26 @@ void Gui::run()
                         game.generateMove(false);
                         initPieces();
                         break;
+                    }
+                    case SDLK_s:
+                    {
+                        if (AI == BLACK)
+                        {
+                            std::reverse(tiles.begin(), tiles.end());
+                            AI = WHITE;
+                        }
+                        else
+                        {
+                            std::reverse(tiles.begin(), tiles.end());
+                            AI = BLACK;
+                        }
+                        for (int i=0; i<tiles.size(); i++)
+                        {
+                            tiles[i].initTexture(tileSurface);
+                        }
+                        clearPieces();
+                        initPieces();
+                        render();
                     }
                 }
             }
