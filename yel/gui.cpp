@@ -136,6 +136,7 @@ void Gui::run()
                         game.setPositionKey();
                         game.generateMove(false);
                         initPieces();
+                        render();
                         break;
                     }
                     case SDLK_s:
