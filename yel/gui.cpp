@@ -43,12 +43,18 @@ Gui::Gui()
     initSurface();
     initBoard();
     initPieces();
+
+    lastmovePosition[0].w = SCREEN_SIZE / 8;
+    lastmovePosition[0].h = SCREEN_SIZE / 8;
+    lastmovePosition[1].w = SCREEN_SIZE / 8;
+    lastmovePosition[1].h = SCREEN_SIZE / 8;
 }
 
 void Gui::initSurface()
 {
     tileSurface[0] = IMG_Load("imgs/whiteSqr.png");
     tileSurface[1] = IMG_Load("imgs/blackSqr.png");
+    tileSurface[2] = IMG_Load("imgs/lastmove.png");
 
     pieceSurface[0] = IMG_Load("imgs/wP.png");
     pieceSurface[1] = IMG_Load("imgs/wN.png");
@@ -65,6 +71,7 @@ void Gui::initSurface()
 
     promoteSqrSurface = IMG_Load("imgs/promoteSqr.png");
     promoteTexture = SDL_CreateTextureFromSurface(renderer, promoteSqrSurface);
+    lastmoveTexture = SDL_CreateTextureFromSurface(renderer, tileSurface[2]);
 }
 
 void Gui::initBoard()
@@ -129,6 +136,7 @@ void Gui::run()
                         }
                         game.init();
                         game.getBoard().histHash.clear();
+                        game.getBoard().moveHistory.clear();
                         game.getBoard().moves.clear();
 
                         const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -136,6 +144,7 @@ void Gui::run()
                         game.setPositionKey();
                         game.generateMove(false);
                         initPieces();
+                        lastMoveChecker = false;
                         render();
                         break;
                     }
@@ -155,6 +164,7 @@ void Gui::run()
                         {
                             tiles[i].initTexture(tileSurface);
                         }
+                        lastMoveChecker = false;
                         clearPieces();
                         initPieces();
                         render();
@@ -245,6 +255,12 @@ void Gui::run()
 
                     if (move != 0 && game.makeMove(move))
                     {
+                        lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
+                        lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
+                        lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
+                        lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
+                        lastMoveChecker = true;
+
                         tiles[mailbox[pieceMovingInfo.to]].setPiece(tiles[mailbox[pieceMovingInfo.from]].getPiece());
                         tiles[mailbox[pieceMovingInfo.from]].setPiece(NULL);
                         tiles[mailbox[pieceMovingInfo.to]].alignPiece();
@@ -288,6 +304,12 @@ void Gui::run()
 
                                 if (move != 0 && game.makeMove(move))
                                 {
+                                    lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
+                                    lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
+                                    lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
+                                    lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
+                                    lastMoveChecker = true;
+
                                     if (ISCAP(move))
                                     {
                                         if (ENPASSCAP(move))
@@ -366,6 +388,12 @@ void Gui::moveAI()
                 delete tiles[mailbox[TO(AImove)]].getPiece();
             }
         }
+
+        lastmovePosition[0].x = tiles[mailbox[FROM(AImove)]].getPosition().x;
+        lastmovePosition[0].y = tiles[mailbox[FROM(AImove)]].getPosition().y;
+        lastmovePosition[1].x = tiles[mailbox[TO(AImove)]].getPosition().x;
+        lastmovePosition[1].y = tiles[mailbox[TO(AImove)]].getPosition().y;
+        lastMoveChecker = true;
 
         if (!castleMove(AImove))
         {
@@ -459,6 +487,12 @@ void Gui::render()
         tiles[i].render();
     }
 
+    if (game.getBoard().moveHistory.size() > 0 && lastMoveChecker)
+    {
+        SDL_RenderCopy(renderer, lastmoveTexture, NULL, &lastmovePosition[0]);
+        SDL_RenderCopy(renderer, lastmoveTexture, NULL, &lastmovePosition[1]);
+    }
+
     for (int i=0; i<tiles.size(); i++)
     {
         if (tiles[i].getPiece() != NULL)
@@ -511,7 +545,7 @@ void Gui::clearPieces()
 
 Gui::~Gui()
 {
-    for (int i=0; i<2; i++)
+    for (int i=0; i<3; i++)
     {
         SDL_FreeSurface(tileSurface[i]);
     }
@@ -520,6 +554,9 @@ Gui::~Gui()
     {
         SDL_FreeSurface(pieceSurface[i]);
     }
+
+    SDL_FreeSurface(promoteSqrSurface);
+    SDL_DestroyTexture(promoteTexture);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

@@ -36,7 +36,7 @@ private:
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     std::vector<Tile> tiles {};
-    SDL_Surface* tileSurface[2];
+    SDL_Surface* tileSurface[3];
     SDL_Surface* pieceSurface[12];
     PieceMoving pieceMovingInfo {};
     Sqr AI = defs::BLACK;
@@ -45,7 +45,10 @@ private:
     SDL_Rect promoteToPieces[4];
     SDL_Surface* promoteSqrSurface = NULL;
     SDL_Texture* promoteTexture = NULL;
+    SDL_Texture* lastmoveTexture = NULL;
     int promotePieceIndex = -1;
+    SDL_Rect lastmovePosition[2];
+    bool lastMoveChecker = false;
 };
 
 }
