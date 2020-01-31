@@ -197,8 +197,7 @@ void Gui::run()
                                 }
                             }
                         }
-
-                        if (game.getBoard().side != AI)
+                        else if (game.getBoard().side != AI)
                         {
                             for (int i=0; i<64; i++)
                             {
@@ -274,6 +273,8 @@ void Gui::run()
                     pieceMovingInfo.to = -1;
                     promoting = false;
                     promotePieceIndex = -1;
+
+                    render();
 
                     game.getBoard().moves.clear();
                     game.generateMove(false);
@@ -529,6 +530,7 @@ void Gui::render()
 
             SDL_RenderCopy(renderer, promoteTexture, NULL, &promoteToPieces[i]);
             SDL_RenderCopy(renderer, pTexture, NULL, &promoteToPieces[i]);
+            SDL_DestroyTexture(pTexture);
         }
     }
 
