@@ -38,7 +38,8 @@ void Gui::initSurface()
 {
     tileSurface[0] = IMG_Load("imgs/whiteSqr.png");
     tileSurface[1] = IMG_Load("imgs/blackSqr.png");
-    tileSurface[2] = IMG_Load("imgs/lastmove.png");
+    tileSurface[2] = IMG_Load("imgs/lastmovelight.png");
+    tileSurface[3] = IMG_Load("imgs/lastmovedark.png");
 
     pieceSurface[0] = IMG_Load("imgs/wP.png");
     pieceSurface[1] = IMG_Load("imgs/wN.png");
@@ -55,7 +56,8 @@ void Gui::initSurface()
 
     promoteSqrSurface = IMG_Load("imgs/promoteSqr.png");
     promoteTexture = SDL_CreateTextureFromSurface(renderer, promoteSqrSurface);
-    lastmoveTexture = SDL_CreateTextureFromSurface(renderer, tileSurface[2]);
+    lastmoveTextureLight = SDL_CreateTextureFromSurface(renderer, tileSurface[2]);
+    lastmoveTextureDark = SDL_CreateTextureFromSurface(renderer, tileSurface[3]);
 }
 
 void Gui::initBoard()
@@ -99,10 +101,11 @@ void Gui::init()
     SDL_Init(SDL_INIT_EVERYTHING);
     initSurface();
 
-    lastmovePosition[0].w = SCREEN_SIZE / 8;
-    lastmovePosition[0].h = SCREEN_SIZE / 8;
-    lastmovePosition[1].w = SCREEN_SIZE / 8;
-    lastmovePosition[1].h = SCREEN_SIZE / 8;
+    for (int i = 0; i < 2; ++i)
+    {
+        lastmovePosition.lastmovePosition[i].w = SCREEN_SIZE / 8;
+        lastmovePosition.lastmovePosition[i].h = SCREEN_SIZE / 8;
+    }
 
     const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -297,11 +300,7 @@ void Gui::movePiece(const SDL_Event& e)
 
                 if (move != 0 && game.makeMove(move))
                 {
-                    lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
-                    lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
-                    lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
-                    lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
-                    lastMoveChecker = true;
+                    setLastMovePos(pieceMovingInfo.from, pieceMovingInfo.to);
 
                     if (ISCAP(move))
                     {
@@ -365,11 +364,7 @@ void Gui::handlePromoteMove()
 
     if (move != 0 && game.makeMove(move))
     {
-        lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
-        lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
-        lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
-        lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
-        lastMoveChecker = true;
+        setLastMovePos(pieceMovingInfo.from, pieceMovingInfo.to);
 
         tiles[mailbox[pieceMovingInfo.to]].setPiece(tiles[mailbox[pieceMovingInfo.from]].getPiece());
         tiles[mailbox[pieceMovingInfo.from]].setPiece(NULL);
@@ -389,6 +384,19 @@ void Gui::handlePromoteMove()
 
     game.getBoard().moves.clear();
     game.generateMove(false);
+}
+
+void Gui::setLastMovePos(int from, int to)
+{
+    lastmovePosition.lastmovePosition[0].x = tiles[mailbox[from]].getPosition().x;
+    lastmovePosition.lastmovePosition[0].y = tiles[mailbox[from]].getPosition().y;
+    lastmovePosition.lastmovePosition[1].x = tiles[mailbox[to]].getPosition().x;
+    lastmovePosition.lastmovePosition[1].y = tiles[mailbox[to]].getPosition().y;
+
+    lastmovePosition.isWhiteFrom = tiles[mailbox[from]].isWhite();
+    lastmovePosition.isWhiteTo = tiles[mailbox[to]].isWhite();
+
+    lastMoveChecker = true;
 }
 
 void Gui::handleMouseMotion(const SDL_Event& e)
@@ -426,11 +434,7 @@ void Gui::moveAI()
         }
     }
 
-    lastmovePosition[0].x = tiles[mailbox[FROM(AImove)]].getPosition().x;
-    lastmovePosition[0].y = tiles[mailbox[FROM(AImove)]].getPosition().y;
-    lastmovePosition[1].x = tiles[mailbox[TO(AImove)]].getPosition().x;
-    lastmovePosition[1].y = tiles[mailbox[TO(AImove)]].getPosition().y;
-    lastMoveChecker = true;
+    setLastMovePos(FROM(AImove), TO(AImove));
 
     if (!castleMove(AImove))
     {
@@ -531,8 +535,10 @@ void Gui::render()
 
     if (game.getBoard().moveHistory.size() > 0 && lastMoveChecker)
     {
-        SDL_RenderCopy(renderer, lastmoveTexture, NULL, &lastmovePosition[0]);
-        SDL_RenderCopy(renderer, lastmoveTexture, NULL, &lastmovePosition[1]);
+        SDL_Texture* lastmovetex = lastmovePosition.isWhiteFrom ? lastmoveTextureLight : lastmoveTextureDark;
+        SDL_RenderCopy(renderer, lastmovetex, NULL, &lastmovePosition.lastmovePosition[0]);
+        lastmovetex = lastmovePosition.isWhiteTo ? lastmoveTextureLight : lastmoveTextureDark;
+        SDL_RenderCopy(renderer, lastmovetex, NULL, &lastmovePosition.lastmovePosition[1]);
     }
 
     for (int i=0; i<tiles.size(); i++)

@@ -17,11 +17,12 @@ public:
     bool isCollide(const SDL_Rect& mouse);
     void alignPiece();
     void promote(Piece p, SDL_Surface* pieceSurface);
+    bool isWhite();
 private:
     SDL_Rect position {};
     SDL_Texture* texture = NULL;
     SDL_Renderer *renderer = NULL;
-    bool isWhite;
+    bool colorWhite;
     int file;
     int rank;
     int sqr;

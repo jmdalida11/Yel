@@ -17,6 +17,13 @@ struct PieceMoving
     int to = -1;
 };
 
+struct LastMovePostion
+{
+    SDL_Rect lastmovePosition[2];
+    bool isWhiteFrom = false;
+    bool isWhiteTo = false;
+};
+
 class Gui
 {
 public:
@@ -40,12 +47,13 @@ public:
     void handlePromoteMove();
     void newGame();
     void switchSide();
+    void setLastMovePos(int from, int to);
 
 private:
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     std::vector<Tile> tiles {};
-    SDL_Surface* tileSurface[3];
+    SDL_Surface* tileSurface[4];
     SDL_Surface* pieceSurface[12];
     PieceMoving pieceMovingInfo {};
     Sqr AI = defs::BLACK;
@@ -54,9 +62,10 @@ private:
     SDL_Rect promoteToPieces[4];
     SDL_Surface* promoteSqrSurface = NULL;
     SDL_Texture* promoteTexture = NULL;
-    SDL_Texture* lastmoveTexture = NULL;
+    SDL_Texture* lastmoveTextureLight = NULL;
+    SDL_Texture* lastmoveTextureDark = NULL;
     int promotePieceIndex = -1;
-    SDL_Rect lastmovePosition[2];
+    LastMovePostion lastmovePosition;
     bool lastMoveChecker = false;
     bool aiThinking = false;
     bool running = false;
