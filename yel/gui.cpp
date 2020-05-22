@@ -58,6 +58,8 @@ void Gui::initSurface()
     promoteTexture = SDL_CreateTextureFromSurface(renderer, promoteSqrSurface);
     lastmoveTextureLight = SDL_CreateTextureFromSurface(renderer, tileSurface[2]);
     lastmoveTextureDark = SDL_CreateTextureFromSurface(renderer, tileSurface[3]);
+
+    SDL_SetWindowIcon(window, pieceSurface[7]);
 }
 
 void Gui::initBoard()
