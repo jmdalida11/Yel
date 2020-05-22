@@ -285,63 +285,77 @@ void Gui::movePiece(const SDL_Event& e)
         int mouseY = e.button.y;
         SDL_Rect mousePos {mouseX, mouseY, 1, 1};
 
-        if (tiles[i].isCollide(mousePos))
+        if (!tiles[i].isCollide(mousePos)) continue;
+
+        pieceMovingInfo.to = mailbox64[i];
+
+        if (isPawn[pieceMovingInfo.pieceMoving->type] && isPromotionSqr(pieceMovingInfo.to))
         {
-            pieceMovingInfo.to = mailbox64[i];
+            bool validPromotionSqr = (AI == BLACK) ? isPromotionSqrForWhite(pieceMovingInfo.to) : isPromotionSqrForBlack(pieceMovingInfo.to);
+            validPromotionSqr = validPromotionSqr && moveOneStraightSqr(pieceMovingInfo.from, !AI) == pieceMovingInfo.to;
 
-            if (isPawn[pieceMovingInfo.pieceMoving->type] && isPromotionSqr(pieceMovingInfo.to))
+            if (!validPromotionSqr)
             {
-                promoting = true;
-            }
-            else
-            {
-                Move move = 0;
-                moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
-
-                move = utils::parseMove(move, game);
-
-                if (move != 0 && game.makeMove(move))
-                {
-                    setLastMovePos(pieceMovingInfo.from, pieceMovingInfo.to);
-
-                    if (ISCAP(move))
-                    {
-                        if (ENPASSCAP(move))
-                        {
-                            delete tiles[mailbox[ENPASSCAP(move)]].getPiece();
-                            tiles[mailbox[ENPASSCAP(move)]].setPiece(NULL);
-                        }
-                        else
-                        {
-                            delete tiles[i].getPiece();
-                            tiles[i].setPiece(NULL);
-                        }
-                    }
-
-                    if (!castleMove(move))
-                    {
-                        tiles[i].setPiece(pieceMovingInfo.pieceMoving);
-                        tiles[i].alignPiece();
-                        pieceMovingInfo.pieceMoving = NULL;
-                        pieceMovingInfo.tile->setPiece(NULL);
-                    }
-
-                    render();
-                    game.getBoard().moves.clear();
-                    game.generateMove(false);
-                }
-                else
-                {
-                    pieceMovingInfo.tile->alignPiece();
-                }
+                pieceMovingInfo.tile->alignPiece();
 
                 pieceMovingInfo.pieceMoving = NULL;
                 pieceMovingInfo.tile = NULL;
                 pieceMovingInfo.from = -1;
                 pieceMovingInfo.to = -1;
+
+                return;
             }
-            break;
+
+            promoting = true;
         }
+        else
+        {
+            Move move = 0;
+            moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
+
+            move = utils::parseMove(move, game);
+
+            if (move != 0 && game.makeMove(move))
+            {
+                setLastMovePos(pieceMovingInfo.from, pieceMovingInfo.to);
+
+                if (ISCAP(move))
+                {
+                    if (ENPASSCAP(move))
+                    {
+                        delete tiles[mailbox[ENPASSCAP(move)]].getPiece();
+                        tiles[mailbox[ENPASSCAP(move)]].setPiece(NULL);
+                    }
+                    else
+                    {
+                        delete tiles[i].getPiece();
+                        tiles[i].setPiece(NULL);
+                    }
+                }
+
+                if (!castleMove(move))
+                {
+                    tiles[i].setPiece(pieceMovingInfo.pieceMoving);
+                    tiles[i].alignPiece();
+                    pieceMovingInfo.pieceMoving = NULL;
+                    pieceMovingInfo.tile->setPiece(NULL);
+                }
+
+                render();
+                game.getBoard().moves.clear();
+                game.generateMove(false);
+            }
+            else
+            {
+                pieceMovingInfo.tile->alignPiece();
+            }
+
+            pieceMovingInfo.pieceMoving = NULL;
+            pieceMovingInfo.tile = NULL;
+            pieceMovingInfo.from = -1;
+            pieceMovingInfo.to = -1;
+        }
+        return;
     }
 }
 

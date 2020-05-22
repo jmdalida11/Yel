@@ -106,13 +106,24 @@ const static std::vector<Sqr> pieceMovesArray[]
 	{}
 };
 
+inline Sqr moveOneStraightSqr(Sqr s, uint8_t color)
+{
+	return color == WHITE ? s + 10 : s - 10;
+}
+
+inline bool isPromotionSqrForWhite(Sqr s)
+{
+	return s >= a8 && s <= h8;
+}
+
+inline bool isPromotionSqrForBlack(Sqr s)
+{
+	return s >= a1 && s <= h1;
+}
+
 inline bool isPromotionSqr(Sqr s)
 {
-	if (s >= a1 && s <= h1)
-		return true;
-	if (s >= a8 && s <= h8)
-		return true;
-	return false;
+	return isPromotionSqrForWhite(s) || isPromotionSqrForBlack(s);
 }
 
 inline const std::vector<Sqr>& pieceMoves(const Piece& piece)
