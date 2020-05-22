@@ -34,12 +34,13 @@ int quiesce(int alpha, int beta, board::Game& game)
 
     game.generateMove(true);
 
-    std::vector<MoveVal> moves = game.getBoard().moves;
-    game.getBoard().moves.clear();
+    std::vector<MoveVal> moves = std::move(game.getBoard().moves);
 
-    for (const auto move : moves)
+    for (int i = 0; i < moves.size(); ++i)
     {
-        if (!game.makeMove(move.m)){
+        pickMove(i, moves);
+
+        if (!game.makeMove(moves[i].m)){
             continue;
         }
 
@@ -49,7 +50,7 @@ int quiesce(int alpha, int beta, board::Game& game)
         if (score > alpha){
             alpha = score;
 
-            game.getBoard().pv[game.getBoard().ply].m = move.m;
+            game.getBoard().pv[game.getBoard().ply].m = moves[i].m;
             game.getBoard().pv[game.getBoard().ply].s = score;
 
             if (score >= beta){
@@ -74,8 +75,7 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
 
     game.generateMove(false);
 
-    std::vector<MoveVal> moves = game.getBoard().moves;
-    game.getBoard().moves.clear();
+    std::vector<MoveVal> moves = std::move(game.getBoard().moves);
 
     for (int i=0; i<moves.size(); i++)
     {

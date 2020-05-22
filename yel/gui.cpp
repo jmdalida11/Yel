@@ -443,7 +443,11 @@ void Gui::moveAI()
     aiThinking = true;
     search(game);
 
-    if (game.getBoard().pv[0].m == 0) return;
+    if (game.getBoard().pv[0].m == 0)
+    {
+        aiThinking = false;
+        return;
+    }
 
     Move AImove = game.getBoard().pv[0].m;
 

@@ -11,12 +11,12 @@ using namespace defs;
 #define ROOK_ON_SEVENTH_BONUS       20
 #define IS_ENDGAME_VAL              2300
 
-const int pieceValue[13]
+static const int pieceValue[13]
 {
     0, 100, 300, 300, 500, 900, 1000, 100, 300, 300, 500, 900, 1000
 };
 
-const int flip[64]
+static const int flip[64]
 {
     56,  57,  58,  59,  60,  61,  62,  63,
     48,  49,  50,  51,  52,  53,  54,  55,
@@ -28,7 +28,7 @@ const int flip[64]
     0,   1,   2,   3,   4,   5,   6,   7
 };
 
-const int pawnPlace[64]
+static const int pawnPlace[64]
 {
     0,  0,  0,  0,  0,  0,  0,  0,
     10, 10, 0, -30,-30,0,  10, 10,
@@ -40,7 +40,7 @@ const int pawnPlace[64]
     0,  0,  0,  0,  0,  0,  0,  0
 };
 
-const int knightPlace[64]
+static const int knightPlace[64]
 {
     0,  -10,0,  0,  0,  0,  -10,0,
     0,  0,  0,  5,  5,  0,  0,  0,
@@ -52,7 +52,7 @@ const int knightPlace[64]
     0,  0,  0,  0,  0,  0,  0,  0
 };
 
-const int bishopPlace[64]
+static const int bishopPlace[64]
 {
     0,  0,  -10,0,  0, -10, 0,  0,
     0,  0,  0,  10, 10, 0,  0,  0,
@@ -64,7 +64,7 @@ const int bishopPlace[64]
     0,  0,  0,  0,  0,  0,  0,  0
 };
 
-const int rookPlace[64]
+static const int rookPlace[64]
 {
     0,  0,  5,  10, 10, 5,  0,  0,
     0,  0,  5,  10, 10, 5,  0,  0,
@@ -76,7 +76,7 @@ const int rookPlace[64]
     0,  0,  5,  10, 10, 5,  0,  0
 };
 
-const int kingPlaceOpening[64]
+static const int kingPlaceOpening[64]
 {
     0,  45,  40,  -5,   0,   -5,  40,  20,
     -5, -5,  -5,  -5,  -5,  -5,  -5,   -5,
@@ -88,7 +88,7 @@ const int kingPlaceOpening[64]
     0,   0,   0,   0,   0,   0,   0,   0,
 };
 
-const int KingPlaceEndgame[64]
+static const int KingPlaceEndgame[64]
 {
     -50, -10, 0, 0, 0, 0, -10, -50,
     -10, 0, 10, 10, 10, 10, 0, -10,
@@ -100,14 +100,11 @@ const int KingPlaceEndgame[64]
     -50, -10, 0, 0, 0, 0, -10, -50
 };
 
-int evaluation(board::Game& game)
+static void countWhiteScore(int& score, board::Game& game)
 {
-    int whiteScore = 0;
-    int blackScore = 0;
-
     for (int pieceIndex=wP; pieceIndex<=wK; pieceIndex++)
     {
-        whiteScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
+        score += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
 
         for (const auto& pieceSqr : game.getBoard().pieces[pieceIndex])
         {
@@ -115,33 +112,36 @@ int evaluation(board::Game& game)
 
             if (pieceIndex == wP)
             {
-                whiteScore += pawnPlace[piecePos];
+                score += pawnPlace[piecePos];
             }
             else if (pieceIndex == wN)
             {
-                whiteScore += knightPlace[piecePos];
+                score += knightPlace[piecePos];
             }
             else if (pieceIndex == wB)
             {
-                whiteScore += bishopPlace[piecePos];
+                score += bishopPlace[piecePos];
             }
             else if (pieceIndex == wR)
             {
-                whiteScore += rookPlace[piecePos];
+                score += rookPlace[piecePos];
             }
             else if (pieceIndex == wK)
             {
-                if (whiteScore <= IS_ENDGAME_VAL)
-                    whiteScore += KingPlaceEndgame[piecePos];
+                if (score <= IS_ENDGAME_VAL)
+                    score += KingPlaceEndgame[piecePos];
                 else
-                    whiteScore += kingPlaceOpening[piecePos];
+                    score += kingPlaceOpening[piecePos];
             }
         }
     }
+}
 
+static void countBlackScore(int& score, board::Game& game)
+{
     for (int pieceIndex=bP; pieceIndex<=bK; pieceIndex++)
     {
-        blackScore += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
+        score += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
 
         for (const auto& pieceSqr : game.getBoard().pieces[pieceIndex])
         {
@@ -149,29 +149,38 @@ int evaluation(board::Game& game)
 
             if (pieceIndex == bP)
             {
-                blackScore += pawnPlace[flip[piecePos]];
+                score += pawnPlace[flip[piecePos]];
             }
             else if (pieceIndex == bN)
             {
-                blackScore += knightPlace[flip[piecePos]];
+                score += knightPlace[flip[piecePos]];
             }
             else if (pieceIndex == bB)
             {
-                blackScore += bishopPlace[flip[piecePos]];
+                score += bishopPlace[flip[piecePos]];
             }
             else if (pieceIndex == bR)
             {
-                blackScore += rookPlace[flip[piecePos]];
+                score += rookPlace[flip[piecePos]];
             }
             else if (pieceIndex == bK)
             {
-                if (blackScore <= IS_ENDGAME_VAL)
-                    blackScore += KingPlaceEndgame[flip[piecePos]];
+                if (score <= IS_ENDGAME_VAL)
+                    score += KingPlaceEndgame[flip[piecePos]];
                 else
-                    blackScore += kingPlaceOpening[flip[piecePos]];
+                    score += kingPlaceOpening[flip[piecePos]];
             }
         }
     }
+}
+
+int evaluation(board::Game& game)
+{
+    int whiteScore = 0;
+    int blackScore = 0;
+
+    countWhiteScore(whiteScore, game);
+    countBlackScore(blackScore, game);
 
     if (game.getBoard().side == BLACK)
         return blackScore - whiteScore;
