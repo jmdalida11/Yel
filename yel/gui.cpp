@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL_image.h>
 #include <algorithm>
+
 #include "utils.hpp"
 
 extern void search(board::Game& game);
@@ -31,23 +32,6 @@ Gui::Gui()
             renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
         }
     }
-
-    const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-    game.init();
-    utils::loadFen(Startfen, game);
-    game.setPositionKey();
-    game.generateMove(false);
-
-    SDL_Init(SDL_INIT_EVERYTHING);
-    initSurface();
-    initBoard();
-    initPieces();
-
-    lastmovePosition[0].w = SCREEN_SIZE / 8;
-    lastmovePosition[0].h = SCREEN_SIZE / 8;
-    lastmovePosition[1].w = SCREEN_SIZE / 8;
-    lastmovePosition[1].h = SCREEN_SIZE / 8;
 }
 
 void Gui::initSurface()
@@ -110,255 +94,35 @@ void Gui::initPieces()
     }
 }
 
+void Gui::init()
+{
+    SDL_Init(SDL_INIT_EVERYTHING);
+    initSurface();
+
+    lastmovePosition[0].w = SCREEN_SIZE / 8;
+    lastmovePosition[0].h = SCREEN_SIZE / 8;
+    lastmovePosition[1].w = SCREEN_SIZE / 8;
+    lastmovePosition[1].h = SCREEN_SIZE / 8;
+
+    const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    game.init();
+    utils::loadFen(Startfen, game);
+    game.setPositionKey();
+    game.generateMove(false);
+
+    initBoard();
+    initPieces();
+}
+
 void Gui::run()
 {
-    bool running = true;
-    SDL_Event e;
+    init();
+    running = true;
 
     while (running)
     {
-        if (SDL_PollEvent(&e))
-        {
-            if (e.type == SDL_QUIT)
-            {
-                running = false;
-            }
-            else if (e.type == SDL_KEYDOWN)
-            {
-                switch(e.key.keysym.sym)
-                {
-                    case SDLK_n:
-                    {
-                        clearPieces();
-                        for(int i=wP; i<=bK; i++)
-                        {
-                            game.getBoard().pieces[i].clear();
-                        }
-                        game.init();
-                        game.getBoard().histHash.clear();
-                        game.getBoard().moveHistory.clear();
-                        game.getBoard().moves.clear();
-
-                        const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-                        utils::loadFen(Startfen, game);
-                        game.setPositionKey();
-                        game.generateMove(false);
-                        initPieces();
-                        lastMoveChecker = false;
-                        render();
-                        break;
-                    }
-                    case SDLK_s:
-                    {
-                        if (AI == BLACK)
-                        {
-                            std::reverse(tiles.begin(), tiles.end());
-                            AI = WHITE;
-                        }
-                        else
-                        {
-                            std::reverse(tiles.begin(), tiles.end());
-                            AI = BLACK;
-                        }
-                        for (int i=0; i<tiles.size(); i++)
-                        {
-                            tiles[i].initTexture(tileSurface);
-                        }
-                        lastMoveChecker = false;
-                        clearPieces();
-                        initPieces();
-                        render();
-                    }
-                }
-            }
-            else if (e.type == SDL_MOUSEBUTTONDOWN)
-            {
-                switch (e.button.button)
-                {
-                    case SDL_BUTTON_LEFT:
-                    {
-                        if (promoting)
-                        {
-                            int mouseX = e.button.x;
-                            int mouseY = e.button.y;
-                            SDL_Rect mousePos {mouseX, mouseY, 1, 1};
-
-                            for (int i=0; i<4; i++)
-                            {
-                               if (!(
-                                    ( ( mousePos.y + mousePos.h ) < ( promoteToPieces[i].y ) ) ||
-                                    ( mousePos.y > ( promoteToPieces[i].y + promoteToPieces[i].h ) ) ||
-                                    ( ( mousePos.x + mousePos.w ) < promoteToPieces[i].x ) ||
-                                    ( mousePos.x > ( promoteToPieces[i].x + promoteToPieces[i].w ) )
-                                ))
-                                {
-                                    promotePieceIndex = i;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (game.getBoard().side != AI)
-                        {
-                            for (int i=0; i<64; i++)
-                            {
-                                int mouseX = e.button.x;
-                                int mouseY = e.button.y;
-                                SDL_Rect mousePos {mouseX, mouseY, 1, 1};
-
-                                if (tiles[i].getPiece() == NULL) continue;
-                                if (pieceColor[tiles[i].getPiece()->type] != game.getBoard().side) continue;
-
-                                if (tiles[i].isCollide(mousePos))
-                                {
-                                    pieceMovingInfo.from = mailbox64[i];
-                                    pieceMovingInfo.pieceMoving = tiles[i].getPiece();
-                                    pieceMovingInfo.tile = &tiles[i];
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else if (e.type == SDL_MOUSEMOTION)
-            {
-                if (pieceMovingInfo.pieceMoving != NULL && !promoting)
-                {
-                    int tileSize = SCREEN_SIZE / 8;
-                    int mouseX = e.button.x;
-                    int mouseY = e.button.y;
-                    pieceMovingInfo.pieceMoving->position.x = mouseX - tileSize/ 2;
-                    pieceMovingInfo.pieceMoving->position.y = mouseY - tileSize / 2;
-                }
-            }
-            else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
-            {
-                if (promotePieceIndex != -1)
-                {
-                    Move move = 0;
-                    moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
-
-                    Piece p;
-                    if (game.getBoard().side == WHITE)
-                    {
-                        p = wQ;
-                    }
-                    else
-                    {
-                        p = bQ;
-                    }
-
-                    addPromoteBits(move, p - promotePieceIndex);
-
-                    move = utils::parseMove(move, game);
-
-                    if (move != 0 && game.makeMove(move))
-                    {
-                        lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
-                        lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
-                        lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
-                        lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
-                        lastMoveChecker = true;
-
-                        tiles[mailbox[pieceMovingInfo.to]].setPiece(tiles[mailbox[pieceMovingInfo.from]].getPiece());
-                        tiles[mailbox[pieceMovingInfo.from]].setPiece(NULL);
-                        tiles[mailbox[pieceMovingInfo.to]].alignPiece();
-
-                        tiles[mailbox[pieceMovingInfo.to]].promote(PROMOTE(move), pieceSurface[(PROMOTE(move))-1]);
-                    }
-
-                    pieceMovingInfo.pieceMoving = NULL;
-                    pieceMovingInfo.tile = NULL;
-                    pieceMovingInfo.from = -1;
-                    pieceMovingInfo.to = -1;
-                    promoting = false;
-                    promotePieceIndex = -1;
-
-                    render();
-
-                    game.getBoard().moves.clear();
-                    game.generateMove(false);
-                }
-
-                else if (pieceMovingInfo.pieceMoving != NULL)
-                {
-                    for (int i=0; i<64; i++)
-                    {
-                        int mouseX = e.button.x;
-                        int mouseY = e.button.y;
-                        SDL_Rect mousePos {mouseX, mouseY, 1, 1};
-
-                        if (tiles[i].isCollide(mousePos))
-                        {
-                            pieceMovingInfo.to = mailbox64[i];
-
-                            if (isPawn[pieceMovingInfo.pieceMoving->type] && isPromotionSqr(pieceMovingInfo.to))
-                            {
-                                promoting = true;
-                            }
-                            else
-                            {
-                                Move move = 0;
-                                moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
-
-                                move = utils::parseMove(move, game);
-
-                                if (move != 0 && game.makeMove(move))
-                                {
-                                    lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
-                                    lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
-                                    lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
-                                    lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
-                                    lastMoveChecker = true;
-
-                                    if (ISCAP(move))
-                                    {
-                                        if (ENPASSCAP(move))
-                                        {
-                                            delete tiles[mailbox[ENPASSCAP(move)]].getPiece();
-                                            tiles[mailbox[ENPASSCAP(move)]].setPiece(NULL);
-                                        }
-                                        else
-                                        {
-                                            delete tiles[i].getPiece();
-                                            tiles[i].setPiece(NULL);
-                                        }
-                                    }
-
-                                    if (!castleMove(move))
-                                    {
-                                        tiles[i].setPiece(pieceMovingInfo.pieceMoving);
-                                        tiles[i].alignPiece();
-                                        pieceMovingInfo.pieceMoving = NULL;
-                                        pieceMovingInfo.tile->setPiece(NULL);
-                                    }
-
-                                    render();
-                                    game.getBoard().moves.clear();
-                                    game.generateMove(false);
-                                }
-                                else
-                                {
-                                    pieceMovingInfo.tile->alignPiece();
-                                }
-
-                                pieceMovingInfo.pieceMoving = NULL;
-                                pieceMovingInfo.tile = NULL;
-                                pieceMovingInfo.from = -1;
-                                pieceMovingInfo.to = -1;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!promoting)
-        {
-            moveAI();
-        }
-
+        handleInput();
         update();
         render();
 
@@ -366,51 +130,323 @@ void Gui::run()
     }
 }
 
-void Gui::moveAI()
+void Gui::handleInput()
 {
-    if (game.getBoard().side == AI)
+    SDL_Event e;
+
+    if (SDL_PollEvent(&e))
     {
-        search(game);
-
-        if (game.getBoard().pv[0].m == 0) return;
-
-        Move AImove = game.getBoard().pv[0].m;
-
-        game.makeMove(AImove);
-
-        if (ISCAP(AImove))
+        if (e.type == SDL_QUIT)
         {
-            if (ENPASSCAP(AImove))
+            running = false;
+        }
+        else if (e.type == SDL_KEYDOWN)
+        {
+            handleKeyDown(e);
+        }
+        else if (e.type == SDL_MOUSEBUTTONDOWN)
+        {
+            handleMouseDown(e);
+        }
+        else if (e.type == SDL_MOUSEMOTION)
+        {
+            handleMouseMotion(e);
+        }
+        else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
+        {
+            if (promotePieceIndex != -1)
             {
-                delete tiles[mailbox[ENPASSCAP(AImove)]].getPiece();
+                handlePromoteMove();
+            }
+
+            else if (pieceMovingInfo.pieceMoving != NULL)
+            {
+                movePiece(e);
+            }
+        }
+    }
+}
+
+void Gui::handleKeyDown(const SDL_Event& e)
+{
+    switch(e.key.keysym.sym)
+    {
+        case SDLK_n:
+        {
+            newGame();
+            break;
+        }
+        case SDLK_s:
+        {
+            switchSide();
+        }
+    }
+}
+
+void Gui::newGame()
+{
+    clearPieces();
+    for(int i=wP; i<=bK; i++)
+    {
+        game.getBoard().pieces[i].clear();
+    }
+    game.init();
+    game.getBoard().histHash.clear();
+    game.getBoard().moveHistory.clear();
+    game.getBoard().moves.clear();
+
+    const std::string Startfen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    utils::loadFen(Startfen, game);
+    game.setPositionKey();
+    game.generateMove(false);
+    initPieces();
+    lastMoveChecker = false;
+    render();
+}
+
+void Gui::switchSide()
+{
+    if (AI == BLACK)
+    {
+        std::reverse(tiles.begin(), tiles.end());
+        AI = WHITE;
+    }
+    else
+    {
+        std::reverse(tiles.begin(), tiles.end());
+        AI = BLACK;
+    }
+    for (int i=0; i<tiles.size(); i++)
+    {
+        tiles[i].initTexture(tileSurface);
+    }
+    lastMoveChecker = false;
+    clearPieces();
+    initPieces();
+    render();
+}
+
+void Gui::handleMouseDown(const SDL_Event& e)
+{
+    if (e.button.button != SDL_BUTTON_LEFT) return;
+
+    if (promoting)
+    {
+        int mouseX = e.button.x;
+        int mouseY = e.button.y;
+        SDL_Rect mousePos {mouseX, mouseY, 1, 1};
+
+        for (int i=0; i<4; i++)
+        {
+           if (!(
+                ( ( mousePos.y + mousePos.h ) < ( promoteToPieces[i].y ) ) ||
+                ( mousePos.y > ( promoteToPieces[i].y + promoteToPieces[i].h ) ) ||
+                ( ( mousePos.x + mousePos.w ) < promoteToPieces[i].x ) ||
+                ( mousePos.x > ( promoteToPieces[i].x + promoteToPieces[i].w ) )
+            ))
+            {
+                promotePieceIndex = i;
+                break;
+            }
+        }
+    }
+    else if (game.getBoard().side != AI)
+    {
+        for (int i=0; i<64; i++)
+        {
+            int mouseX = e.button.x;
+            int mouseY = e.button.y;
+            SDL_Rect mousePos {mouseX, mouseY, 1, 1};
+
+            if (tiles[i].getPiece() == NULL) continue;
+            if (pieceColor[tiles[i].getPiece()->type] != game.getBoard().side) continue;
+
+            if (tiles[i].isCollide(mousePos))
+            {
+                pieceMovingInfo.from = mailbox64[i];
+                pieceMovingInfo.pieceMoving = tiles[i].getPiece();
+                pieceMovingInfo.tile = &tiles[i];
+                break;
+            }
+        }
+    }
+}
+
+void Gui::movePiece(const SDL_Event& e)
+{
+    for (int i=0; i<64; i++)
+    {
+        int mouseX = e.button.x;
+        int mouseY = e.button.y;
+        SDL_Rect mousePos {mouseX, mouseY, 1, 1};
+
+        if (tiles[i].isCollide(mousePos))
+        {
+            pieceMovingInfo.to = mailbox64[i];
+
+            if (isPawn[pieceMovingInfo.pieceMoving->type] && isPromotionSqr(pieceMovingInfo.to))
+            {
+                promoting = true;
             }
             else
             {
-                delete tiles[mailbox[TO(AImove)]].getPiece();
-            }
-        }
+                Move move = 0;
+                moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
 
-        lastmovePosition[0].x = tiles[mailbox[FROM(AImove)]].getPosition().x;
-        lastmovePosition[0].y = tiles[mailbox[FROM(AImove)]].getPosition().y;
-        lastmovePosition[1].x = tiles[mailbox[TO(AImove)]].getPosition().x;
-        lastmovePosition[1].y = tiles[mailbox[TO(AImove)]].getPosition().y;
+                move = utils::parseMove(move, game);
+
+                if (move != 0 && game.makeMove(move))
+                {
+                    lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
+                    lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
+                    lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
+                    lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
+                    lastMoveChecker = true;
+
+                    if (ISCAP(move))
+                    {
+                        if (ENPASSCAP(move))
+                        {
+                            delete tiles[mailbox[ENPASSCAP(move)]].getPiece();
+                            tiles[mailbox[ENPASSCAP(move)]].setPiece(NULL);
+                        }
+                        else
+                        {
+                            delete tiles[i].getPiece();
+                            tiles[i].setPiece(NULL);
+                        }
+                    }
+
+                    if (!castleMove(move))
+                    {
+                        tiles[i].setPiece(pieceMovingInfo.pieceMoving);
+                        tiles[i].alignPiece();
+                        pieceMovingInfo.pieceMoving = NULL;
+                        pieceMovingInfo.tile->setPiece(NULL);
+                    }
+
+                    render();
+                    game.getBoard().moves.clear();
+                    game.generateMove(false);
+                }
+                else
+                {
+                    pieceMovingInfo.tile->alignPiece();
+                }
+
+                pieceMovingInfo.pieceMoving = NULL;
+                pieceMovingInfo.tile = NULL;
+                pieceMovingInfo.from = -1;
+                pieceMovingInfo.to = -1;
+            }
+            break;
+        }
+    }
+}
+
+void Gui::handlePromoteMove()
+{
+    Move move = 0;
+    moveFromTo(move, pieceMovingInfo.from, pieceMovingInfo.to);
+
+    Piece p;
+    if (game.getBoard().side == WHITE)
+    {
+        p = wQ;
+    }
+    else
+    {
+        p = bQ;
+    }
+
+    addPromoteBits(move, p - promotePieceIndex);
+
+    move = utils::parseMove(move, game);
+
+    if (move != 0 && game.makeMove(move))
+    {
+        lastmovePosition[0].x = tiles[mailbox[pieceMovingInfo.from]].getPosition().x;
+        lastmovePosition[0].y = tiles[mailbox[pieceMovingInfo.from]].getPosition().y;
+        lastmovePosition[1].x = tiles[mailbox[pieceMovingInfo.to]].getPosition().x;
+        lastmovePosition[1].y = tiles[mailbox[pieceMovingInfo.to]].getPosition().y;
         lastMoveChecker = true;
 
-        if (!castleMove(AImove))
-        {
-            tiles[mailbox[TO(AImove)]].setPiece(tiles[mailbox[FROM(AImove)]].getPiece());
-            tiles[mailbox[FROM(AImove)]].setPiece(NULL);
-            tiles[mailbox[TO(AImove)]].alignPiece();
+        tiles[mailbox[pieceMovingInfo.to]].setPiece(tiles[mailbox[pieceMovingInfo.from]].getPiece());
+        tiles[mailbox[pieceMovingInfo.from]].setPiece(NULL);
+        tiles[mailbox[pieceMovingInfo.to]].alignPiece();
 
-            if (PROMOTE(AImove))
-            {
-                tiles[mailbox[TO(AImove)]].promote(PROMOTE(AImove), pieceSurface[(PROMOTE(AImove))-1]);
-            }
-        }
-
-        game.getBoard().moves.clear();
-        game.generateMove(false);
+        tiles[mailbox[pieceMovingInfo.to]].promote(PROMOTE(move), pieceSurface[(PROMOTE(move))-1]);
     }
+
+    pieceMovingInfo.pieceMoving = NULL;
+    pieceMovingInfo.tile = NULL;
+    pieceMovingInfo.from = -1;
+    pieceMovingInfo.to = -1;
+    promoting = false;
+    promotePieceIndex = -1;
+
+    render();
+
+    game.getBoard().moves.clear();
+    game.generateMove(false);
+}
+
+void Gui::handleMouseMotion(const SDL_Event& e)
+{
+    if (pieceMovingInfo.pieceMoving != NULL && !promoting)
+    {
+        int tileSize = SCREEN_SIZE / 8;
+        int mouseX = e.button.x;
+        int mouseY = e.button.y;
+        pieceMovingInfo.pieceMoving->position.x = mouseX - tileSize/ 2;
+        pieceMovingInfo.pieceMoving->position.y = mouseY - tileSize / 2;
+    }
+}
+
+void Gui::moveAI()
+{
+    aiThinking = true;
+    search(game);
+
+    if (game.getBoard().pv[0].m == 0) return;
+
+    Move AImove = game.getBoard().pv[0].m;
+
+    game.makeMove(AImove);
+
+    if (ISCAP(AImove))
+    {
+        if (ENPASSCAP(AImove))
+        {
+            delete tiles[mailbox[ENPASSCAP(AImove)]].getPiece();
+        }
+        else
+        {
+            delete tiles[mailbox[TO(AImove)]].getPiece();
+        }
+    }
+
+    lastmovePosition[0].x = tiles[mailbox[FROM(AImove)]].getPosition().x;
+    lastmovePosition[0].y = tiles[mailbox[FROM(AImove)]].getPosition().y;
+    lastmovePosition[1].x = tiles[mailbox[TO(AImove)]].getPosition().x;
+    lastmovePosition[1].y = tiles[mailbox[TO(AImove)]].getPosition().y;
+    lastMoveChecker = true;
+
+    if (!castleMove(AImove))
+    {
+        tiles[mailbox[TO(AImove)]].setPiece(tiles[mailbox[FROM(AImove)]].getPiece());
+        tiles[mailbox[FROM(AImove)]].setPiece(NULL);
+        tiles[mailbox[TO(AImove)]].alignPiece();
+
+        if (PROMOTE(AImove))
+        {
+            tiles[mailbox[TO(AImove)]].promote(PROMOTE(AImove), pieceSurface[(PROMOTE(AImove))-1]);
+        }
+    }
+
+    game.getBoard().moves.clear();
+    game.generateMove(false);
+    aiThinking = false;
 }
 
 bool Gui::castleMove(Move move)
@@ -476,6 +512,11 @@ void Gui::update()
     for (int i=0; i<tiles.size(); i++)
     {
         tiles[i].update();
+    }
+
+    if (!promoting && game.getBoard().side == AI && !aiThinking)
+    {
+        moveAI();
     }
 }
 
