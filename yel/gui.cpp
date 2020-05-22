@@ -291,22 +291,7 @@ void Gui::movePiece(const SDL_Event& e)
 
         if (isPawn[pieceMovingInfo.pieceMoving->type] && isPromotionSqr(pieceMovingInfo.to))
         {
-            bool validPromotionSqr = (AI == BLACK) ? isPromotionSqrForWhite(pieceMovingInfo.to) : isPromotionSqrForBlack(pieceMovingInfo.to);
-            validPromotionSqr = validPromotionSqr && moveOneStraightSqr(pieceMovingInfo.from, !AI) == pieceMovingInfo.to;
-
-            if (!validPromotionSqr)
-            {
-                pieceMovingInfo.tile->alignPiece();
-
-                pieceMovingInfo.pieceMoving = NULL;
-                pieceMovingInfo.tile = NULL;
-                pieceMovingInfo.from = -1;
-                pieceMovingInfo.to = -1;
-
-                return;
-            }
-
-            promoting = true;
+            checkPromotionMove();
         }
         else
         {
@@ -317,33 +302,7 @@ void Gui::movePiece(const SDL_Event& e)
 
             if (move != 0 && game.makeMove(move))
             {
-                setLastMovePos(pieceMovingInfo.from, pieceMovingInfo.to);
-
-                if (ISCAP(move))
-                {
-                    if (ENPASSCAP(move))
-                    {
-                        delete tiles[mailbox[ENPASSCAP(move)]].getPiece();
-                        tiles[mailbox[ENPASSCAP(move)]].setPiece(NULL);
-                    }
-                    else
-                    {
-                        delete tiles[i].getPiece();
-                        tiles[i].setPiece(NULL);
-                    }
-                }
-
-                if (!castleMove(move))
-                {
-                    tiles[i].setPiece(pieceMovingInfo.pieceMoving);
-                    tiles[i].alignPiece();
-                    pieceMovingInfo.pieceMoving = NULL;
-                    pieceMovingInfo.tile->setPiece(NULL);
-                }
-
-                render();
-                game.getBoard().moves.clear();
-                game.generateMove(false);
+                updatePieceLocation(move, i);
             }
             else
             {
@@ -355,7 +314,59 @@ void Gui::movePiece(const SDL_Event& e)
             pieceMovingInfo.from = -1;
             pieceMovingInfo.to = -1;
         }
+
         return;
+    }
+}
+
+void Gui::updatePieceLocation(const Move& move, const int i)
+{
+    setLastMovePos(pieceMovingInfo.from, pieceMovingInfo.to);
+
+    if (ISCAP(move))
+    {
+        if (ENPASSCAP(move))
+        {
+            delete tiles[mailbox[ENPASSCAP(move)]].getPiece();
+            tiles[mailbox[ENPASSCAP(move)]].setPiece(NULL);
+        }
+        else
+        {
+            delete tiles[i].getPiece();
+            tiles[i].setPiece(NULL);
+        }
+    }
+
+    if (!castleMove(move))
+    {
+        tiles[i].setPiece(pieceMovingInfo.pieceMoving);
+        tiles[i].alignPiece();
+        pieceMovingInfo.pieceMoving = NULL;
+        pieceMovingInfo.tile->setPiece(NULL);
+    }
+
+    render();
+    game.getBoard().moves.clear();
+    game.generateMove(false);
+}
+
+void Gui::checkPromotionMove()
+{
+    bool validPromotionSqr = (AI == BLACK) ? isPromotionSqrForWhite(pieceMovingInfo.to) : isPromotionSqrForBlack(pieceMovingInfo.to);
+    validPromotionSqr = validPromotionSqr && moveOneStraightSqr(pieceMovingInfo.from, !AI) == pieceMovingInfo.to;
+
+    if (!validPromotionSqr)
+    {
+        pieceMovingInfo.tile->alignPiece();
+
+        pieceMovingInfo.pieceMoving = NULL;
+        pieceMovingInfo.tile = NULL;
+        pieceMovingInfo.from = -1;
+        pieceMovingInfo.to = -1;
+    }
+    else
+    {
+        promoting = true;
     }
 }
 

@@ -48,6 +48,8 @@ public:
     void newGame();
     void switchSide();
     void setLastMovePos(int from, int to);
+    void checkPromotionMove();
+    void updatePieceLocation(const Move& move, const int i);
 
 private:
     SDL_Window *window = NULL;
