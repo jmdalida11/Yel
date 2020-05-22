@@ -93,7 +93,5 @@ void Tile::destroyPiece()
 
 Tile::~Tile()
 {
-    destroyPiece();
-
     SDL_DestroyTexture(texture);
 }

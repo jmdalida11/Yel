@@ -610,6 +610,8 @@ void Gui::clearPieces()
 
 Gui::~Gui()
 {
+    clearPieces();
+
     for (int i=0; i<3; i++)
     {
         SDL_FreeSurface(tileSurface[i]);
