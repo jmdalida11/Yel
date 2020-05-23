@@ -2,18 +2,9 @@
 
 using namespace defs;
 
-#define DOUBLED_PAWN_PENALTY        10
-#define ISOLATED_PAWN_PENALTY       20
-#define BACKWARDS_PAWN_PENALTY      8
-#define PASSED_PAWN_BONUS           20
-#define ROOK_SEMI_OPEN_FILE_BONUS   10
-#define ROOK_OPEN_FILE_BONUS        15
-#define ROOK_ON_SEVENTH_BONUS       20
-#define IS_ENDGAME_VAL              2300
-
 static const int pieceValue[13]
 {
-    0, 100, 300, 300, 500, 900, 1000, 100, 300, 300, 500, 900, 1000
+    0, 100, 300, 300, 500, 900, 0, 100, 300, 300, 500, 900, 0
 };
 
 static const int flip[64]
@@ -31,10 +22,22 @@ static const int flip[64]
 static const int pawnPlace[64]
 {
     0,  0,  0,  0,  0,  0,  0,  0,
-    10, 10, 0, -30,-30,0,  10, 10,
+    10, 10, -5, -30,-30, 0,  10, 10,
     5,  0,  0,  5,  5,  0,  0,  5,
     0,  0,  10, 20, 20, 10, 0,  0,
     5,  5,  5,  25, 25, 5,  5,  5,
+    10, 10, 10, 26, 26, 10, 10, 10,
+    20, 20, 20, 30, 30, 20, 20, 20,
+    0,  0,  0,  0,  0,  0,  0,  0
+};
+
+static const int pawnPlaceEndGame[64]
+{
+    0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,
+    5,  5,  5,  5,  5,  5,  5,  5,
+    7,  7,  10, 20, 20, 10, 7,  7,
+    8,  8,  8,  25, 25, 8,  8,  8,
     10, 10, 10, 26, 26, 10, 10, 10,
     20, 20, 20, 30, 30, 20, 20, 20,
     0,  0,  0,  0,  0,  0,  0,  0
@@ -100,6 +103,45 @@ static const int KingPlaceEndgame[64]
     -50, -10, 0, 0, 0, 0, -10, -50
 };
 
+enum Stage
+{
+    OPENING,
+    MIDDLEGAME,
+    ENDGAME
+};
+
+static int stageScore = 0;
+
+static inline Stage stage(board::Game& game)
+{
+    int wq = game.getBoard().pieces[wQ].size();
+    int bq = game.getBoard().pieces[wQ].size();
+
+    if (stageScore <= 1300 || (wq == 0 && bq == 0)) return ENDGAME;
+    else if (stageScore <= 2000) return MIDDLEGAME;
+    else return OPENING;
+}
+
+static void kingPawnCover(int& whiteScore, int& blackScore, board::Game& game)
+{
+    if (stage(game) == OPENING || stage(game) == MIDDLEGAME)
+    {
+        for (const auto& pieceSqr : game.getBoard().pieces[wP])
+        {
+            if (pieceSqr == game.getBoard().pieces[wK][0] + 10) whiteScore += 15;
+            if (pieceSqr == game.getBoard().pieces[wK][0] + 9) whiteScore += 10;
+            if (pieceSqr == game.getBoard().pieces[wK][0] + 11) whiteScore += 10;
+        }
+
+        for (const auto& pieceSqr : game.getBoard().pieces[bP])
+        {
+            if (pieceSqr == game.getBoard().pieces[bK][0] - 10) blackScore += 15;
+            if (pieceSqr == game.getBoard().pieces[bK][0] - 9) blackScore += 10;
+            if (pieceSqr == game.getBoard().pieces[bK][0] - 11) blackScore += 10;
+        }
+}
+}
+
 static void countWhiteScore(int& score, board::Game& game)
 {
     for (int pieceIndex=wP; pieceIndex<=wK; pieceIndex++)
@@ -112,7 +154,10 @@ static void countWhiteScore(int& score, board::Game& game)
 
             if (pieceIndex == wP)
             {
-                score += pawnPlace[piecePos];
+                if (stage(game) == ENDGAME)
+                    score += pawnPlaceEndGame[piecePos];
+                else
+                    score += pawnPlace[piecePos];
             }
             else if (pieceIndex == wN)
             {
@@ -128,9 +173,9 @@ static void countWhiteScore(int& score, board::Game& game)
             }
             else if (pieceIndex == wK)
             {
-                if (score <= IS_ENDGAME_VAL)
+                if (stage(game) == ENDGAME)
                     score += KingPlaceEndgame[piecePos];
-                else
+                else if (stage(game) == OPENING)
                     score += kingPlaceOpening[piecePos];
             }
         }
@@ -149,7 +194,10 @@ static void countBlackScore(int& score, board::Game& game)
 
             if (pieceIndex == bP)
             {
-                score += pawnPlace[flip[piecePos]];
+                if (stage(game) == ENDGAME)
+                    score += pawnPlaceEndGame[flip[piecePos]];
+                else
+                    score += pawnPlace[flip[piecePos]];
             }
             else if (pieceIndex == bN)
             {
@@ -165,11 +213,22 @@ static void countBlackScore(int& score, board::Game& game)
             }
             else if (pieceIndex == bK)
             {
-                if (score <= IS_ENDGAME_VAL)
+                if (stage(game) == ENDGAME)
                     score += KingPlaceEndgame[flip[piecePos]];
-                else
+                else if (stage(game) == OPENING)
                     score += kingPlaceOpening[flip[piecePos]];
             }
+        }
+    }
+}
+
+void countAllPiecesScore(int& score, board::Game& game)
+{
+    for (int pieceIndex=wP; pieceIndex<=bK; pieceIndex++)
+    {
+        for (const auto& pieceSqr : game.getBoard().pieces[pieceIndex])
+        {
+            score += pieceValue[pieceIndex] * game.getBoard().pieces[pieceIndex].size();
         }
     }
 }
@@ -178,9 +237,13 @@ int evaluation(board::Game& game)
 {
     int whiteScore = 0;
     int blackScore = 0;
+    stageScore = 0;
 
+    countAllPiecesScore(stageScore, game);
     countWhiteScore(whiteScore, game);
     countBlackScore(blackScore, game);
+
+    kingPawnCover(whiteScore, blackScore, game);
 
     if (game.getBoard().side == BLACK)
         return blackScore - whiteScore;

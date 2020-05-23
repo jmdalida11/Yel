@@ -119,7 +119,7 @@ int alphaBeta(int alpha, int beta, int depth, board::Game& game)
 
 void search(board::Game& game)
 {
-    int maxDepth = 4;
+    int maxDepth = 5;
     game.getBoard().ply = 0;
     game.clearPv(game);
     alphaBeta(-INT_MAX, INT_MAX, maxDepth, game);

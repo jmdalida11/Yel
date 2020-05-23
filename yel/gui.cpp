@@ -12,6 +12,16 @@ namespace gui {
 using namespace defs;
 
 constexpr int SCREEN_SIZE = 600;
+static bool aiThinking = false;
+
+static int aiThreadSeach(void* data)
+{
+
+    ThreadData* dataThread = (ThreadData*) data;
+    dataThread->gui->moveAI();
+
+    return 0;
+}
 
 Gui::Gui()
 {
@@ -29,7 +39,7 @@ Gui::Gui()
         }
         else
         {
-            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         }
     }
 }
@@ -118,6 +128,9 @@ void Gui::init()
 
     initBoard();
     initPieces();
+
+    threadData = new ThreadData;
+    threadData->gui = this;
 }
 
 void Gui::run()
@@ -143,9 +156,14 @@ void Gui::handleInput()
     {
         if (e.type == SDL_QUIT)
         {
+            SDL_DetachThread(thread);
             running = false;
+            return;
         }
-        else if (e.type == SDL_KEYDOWN)
+
+        if (aiThinking) return;
+
+        if (e.type == SDL_KEYDOWN)
         {
             handleKeyDown(e);
         }
@@ -551,7 +569,7 @@ void Gui::update()
 
     if (!promoting && game.getBoard().side == AI && !aiThinking)
     {
-        moveAI();
+        thread = SDL_CreateThread(aiThreadSeach, "AIMoveThread", threadData);
     }
 }
 

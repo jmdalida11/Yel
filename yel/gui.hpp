@@ -24,6 +24,8 @@ struct LastMovePostion
     bool isWhiteTo = false;
 };
 
+struct ThreadData;
+
 class Gui
 {
 public:
@@ -69,8 +71,14 @@ private:
     int promotePieceIndex = -1;
     LastMovePostion lastmovePosition;
     bool lastMoveChecker = false;
-    bool aiThinking = false;
     bool running = false;
+    SDL_Thread *thread;
+    ThreadData *threadData = NULL;
+};
+
+struct ThreadData
+{
+    Gui* gui = NULL;
 };
 
 }
