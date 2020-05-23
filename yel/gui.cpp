@@ -12,7 +12,7 @@ namespace gui {
 using namespace defs;
 
 constexpr int SCREEN_SIZE = 600;
-static bool aiThinking = false;
+static volatile bool aiThinking = false;
 
 static int aiThreadSeach(void* data)
 {
@@ -569,6 +569,8 @@ void Gui::update()
 
 void Gui::render()
 {
+    if (aiThinking) return;
+
     SDL_RenderClear(renderer);
 
     for (int i=0; i<tiles.size(); i++)
@@ -576,7 +578,7 @@ void Gui::render()
         tiles[i].render();
     }
 
-    if (game.getBoard().moveHistory.size() > 0 && lastMoveChecker)
+    if (lastMoveChecker)
     {
         SDL_Texture* lastmovetex = lastmovePosition.isWhiteFrom ? lastmoveTextureLight : lastmoveTextureDark;
         SDL_RenderCopy(renderer, lastmovetex, NULL, &lastmovePosition.lastmovePosition[0]);
