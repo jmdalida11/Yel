@@ -16,10 +16,6 @@ void GuiPiece::initTexture(SDL_Surface* tileSurface)
     texture = SDL_CreateTextureFromSurface(renderer, tileSurface);
 }
 
-void GuiPiece::update()
-{
-}
-
 void GuiPiece::render()
 {
     SDL_RenderCopy(renderer, texture, NULL, &position);

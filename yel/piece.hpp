@@ -7,7 +7,6 @@ class GuiPiece
 public:
     GuiPiece(int x, int y, int size, Sqr s, int t, SDL_Renderer *ren);
     ~GuiPiece();
-    void update();
     void render();
     void initTexture(SDL_Surface* tileSurface);
     SDL_Rect position {};

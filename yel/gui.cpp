@@ -457,7 +457,6 @@ void Gui::handleMouseMotion(const SDL_Event& e)
 
 void Gui::moveAI()
 {
-    aiThinking = true;
     search(game);
 
     if (game.getBoard().pv[0].m == 0)
@@ -561,14 +560,10 @@ bool Gui::castleMove(Move move)
 
 void Gui::update()
 {
-    for (int i=0; i<tiles.size(); i++)
-    {
-        tiles[i].update();
-    }
-
     if (!promoting && game.getBoard().side == AI && !aiThinking)
     {
-        thread = SDL_CreateThread(aiThreadSeach, "AIMoveThread", threadData);
+        aiThinking = true;
+        SDL_CreateThread(aiThreadSeach, "AIMoveThread", threadData);
     }
 }
 

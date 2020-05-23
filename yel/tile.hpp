@@ -6,7 +6,6 @@ class Tile
 public:
     Tile(int x, int y, int size, int f, int r, int s, bool isW, SDL_Renderer *ren);
     ~Tile();
-    void update();
     void render();
     void initTexture(SDL_Surface* tileSurface[]);
     GuiPiece* getPiece();

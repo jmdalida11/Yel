@@ -21,14 +21,6 @@ void Tile::initTexture(SDL_Surface* tileSurface[])
         texture = SDL_CreateTextureFromSurface(renderer, tileSurface[1]);
 }
 
-void Tile::update()
-{
-    if (piece != NULL)
-    {
-        piece->update();
-    }
-}
-
 bool Tile::isWhite()
 {
     return colorWhite;

@@ -72,7 +72,6 @@ private:
     LastMovePostion lastmovePosition;
     bool lastMoveChecker = false;
     bool running = false;
-    SDL_Thread *thread;
     ThreadData *threadData = NULL;
 };
 
