@@ -31,7 +31,7 @@ Gui::Gui()
     }
     else
     {
-        window = SDL_CreateWindow("Yel Chess Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_SIZE, SCREEN_SIZE, SDL_WINDOW_SHOWN);
+        window = SDL_CreateWindow("Yel Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_SIZE, SCREEN_SIZE, SDL_WINDOW_SHOWN);
 
         if(window == NULL)
         {
