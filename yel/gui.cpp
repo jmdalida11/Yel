@@ -370,7 +370,33 @@ void Gui::updatePieceLocation(const Move& move, const int i)
 void Gui::checkPromotionMove()
 {
     bool validPromotionSqr = (AI == BLACK) ? isPromotionSqrForWhite(pieceMovingInfo.to) : isPromotionSqrForBlack(pieceMovingInfo.to);
-    validPromotionSqr = validPromotionSqr && moveOneStraightSqr(pieceMovingInfo.from, !AI) == pieceMovingInfo.to;
+    bool validCapturePromote = false;
+
+    if (AI == BLACK)
+    {
+        if (pieceMovingInfo.to == pieceMovingInfo.from + 9 || pieceMovingInfo.to == pieceMovingInfo.from + 11)
+        {
+            if (game.getBoard().position[pieceMovingInfo.to] != EMPTY)
+            {
+                if (pieceColor[game.getBoard().position[pieceMovingInfo.to]] == BLACK)
+                    validCapturePromote = true;
+            }
+        }
+    }
+    else
+    {
+        if (pieceMovingInfo.to == pieceMovingInfo.from - 9 || pieceMovingInfo.to == pieceMovingInfo.from - 11)
+        {
+            if (game.getBoard().position[pieceMovingInfo.to] != EMPTY)
+            {
+                if (pieceColor[game.getBoard().position[pieceMovingInfo.to]] == WHITE)
+                    validCapturePromote = true;
+            }
+        }
+    }
+
+    validPromotionSqr = validPromotionSqr &&
+        (moveOneStraightSqr(pieceMovingInfo.from, !AI) == pieceMovingInfo.to || validCapturePromote);
 
     if (!validPromotionSqr)
     {
