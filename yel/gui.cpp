@@ -156,7 +156,6 @@ void Gui::handleInput()
     {
         if (e.type == SDL_QUIT)
         {
-            SDL_DetachThread(thread);
             running = false;
             return;
         }
