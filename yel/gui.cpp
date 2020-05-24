@@ -500,10 +500,12 @@ void Gui::moveAI()
         if (ENPASSCAP(AImove))
         {
             delete tiles[mailbox[ENPASSCAP(AImove)]].getPiece();
+            tiles[mailbox[ENPASSCAP(AImove)]].setPiece(NULL);
         }
         else
         {
             delete tiles[mailbox[TO(AImove)]].getPiece();
+            tiles[mailbox[TO(AImove)]].setPiece(NULL);
         }
     }
 
